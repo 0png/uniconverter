@@ -1,4 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { FolderOpen, FileOutput, Play, Trash2, File as FileIcon, Upload } from "lucide-react"
 
 const bytesToSize = (n) => {
   if (n < 1024) return `${n} B`
@@ -76,8 +80,7 @@ function App() {
       const newFiles = paths.map(p => ({
         path: p,
         name: p.split(/[\\/]/).pop(),
-        size: 0 // Electron dialog doesn't return size, would need fs.stat in main process or here if we had access. 
-                // Since original code pushed size:0 for chosen files (only drop had size), we stick to that or improve later.
+        size: 0 
       }))
       addFiles(newFiles)
     } catch (e) {
@@ -99,8 +102,6 @@ function App() {
     const newFiles = []
     for (let i = 0; i < fileList.length; i++) {
       const f = fileList[i]
-      // In Electron renderer with contextIsolation: false or preload exposing path
-      // File object usually has 'path' property.
       const path = f.path || f.name 
       newFiles.push({ path, name: f.name, size: f.size })
     }
@@ -126,7 +127,7 @@ function App() {
       }
       const r = await window.api.doAction(payload)
       if (r && r.ok && r.data) {
-        setProgress(1)
+        setProgress(100)
         setStatus(`完成 成功:${r.data.ok} 失敗:${r.data.fail}`)
         alert(`成功 ${r.data.ok}，失敗 ${r.data.fail}`)
       } else {
@@ -148,122 +149,122 @@ function App() {
   const totalSize = files.reduce((acc, f) => acc + (f.size || 0), 0)
 
   return (
-    <div className="flex h-screen bg-bg text-text font-sans select-none">
+    <div className="flex h-screen bg-background text-foreground font-sans select-none overflow-hidden">
       {/* Sidebar */}
-      <div className="w-[200px] bg-surface border-r border-border p-3 flex flex-col">
-        <div className="font-bold text-base mb-2 text-text">UniConvert</div>
-        <button className="btn nav">主頁</button>
-        <button className="btn nav">設定</button>
+      <div className="w-[200px] border-r border-border p-4 flex flex-col gap-4">
+        <div className="font-bold text-lg px-2">UniConvert</div>
+        <nav className="flex flex-col gap-2">
+          <Button variant="ghost" className="justify-start w-full">主頁</Button>
+          <Button variant="ghost" className="justify-start w-full">設定</Button>
+        </nav>
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="p-3 text-xl font-bold text-right">UniConvert 檔案轉換</div>
-        
-        {/* Toolbar */}
-        <div className="flex gap-2 px-3 pb-2">
-          <button className="btn" onClick={handleChooseFiles}>Choose Files</button>
-          <button className="btn" onClick={handleChooseOutput}>Output Folder</button>
-          <button 
-            className="btn primary" 
-            onClick={handleStart}
-            disabled={!action || files.length === 0 || isProcessing}
-          >
-            開始轉換
-          </button>
+      <div className="flex-1 flex flex-col h-full overflow-hidden p-6 gap-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold tracking-tight">檔案轉換</h1>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleChooseFiles}>
+              <FolderOpen className="mr-2 h-4 w-4" />
+              選擇檔案
+            </Button>
+            <Button variant="outline" onClick={handleChooseOutput}>
+              <FileOutput className="mr-2 h-4 w-4" />
+              輸出資料夾
+            </Button>
+            <Button 
+              onClick={handleStart}
+              disabled={!action || files.length === 0 || isProcessing}
+            >
+              <Play className="mr-2 h-4 w-4" />
+              開始轉換
+            </Button>
+          </div>
         </div>
 
-        {/* Main Area */}
-        <div className="flex flex-1 px-3 pb-3 gap-3 overflow-hidden">
-          {/* Left Panel */}
-          <div className="flex-1 bg-surface border border-border rounded-xl p-3 flex flex-col overflow-hidden">
-            
+        <Card className="flex-1 flex flex-col overflow-hidden">
+          <CardHeader className="pb-4">
+            <CardTitle>工作區</CardTitle>
+            <CardDescription>
+              {action ? `目前操作: ${action}` : "請選擇檔案以檢視可用操作"}
+            </CardDescription>
             {/* Actions */}
-            <div className="flex flex-wrap gap-2 mb-2 min-h-[36px]">
+            <div className="flex flex-wrap gap-2 mt-2">
               {suggestedActions.map(a => (
-                <button
+                <Button
                   key={a}
-                  className={`btn option ${action === a ? 'active' : ''}`}
+                  variant={action === a ? "default" : "secondary"}
+                  size="sm"
                   onClick={() => setAction(a)}
+                  className="text-xs"
                 >
                   {a}
-                </button>
+                </Button>
               ))}
             </div>
-
-            {/* Drop Area / File List */}
+          </CardHeader>
+          
+          <CardContent className="flex-1 flex flex-col overflow-hidden gap-4 pb-4">
+             {/* Drop Area / File List */}
             <div 
-              className={`flex-1 bg-surface2 border border-dashed border-border rounded-xl flex flex-col overflow-hidden ${files.length === 0 ? 'items-center justify-center gap-2' : ''}`}
+              className={`flex-1 border-2 border-dashed rounded-lg flex flex-col overflow-hidden transition-colors ${files.length === 0 ? 'items-center justify-center border-muted-foreground/25 bg-muted/50' : 'border-border bg-card'}`}
               onDragOver={handleDragOver}
               onDrop={handleDrop}
             >
               {files.length === 0 ? (
-                <div className="text-center">
-                  <div className="text-muted text-sm">拖曳檔案到此處</div>
-                  <div className="text-muted text-xs mt-1">提示：可直接拖曳或使用上方按鈕加入檔案</div>
+                <div className="text-center p-8">
+                  <div className="rounded-full bg-background p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-sm">
+                    <Upload className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-semibold">拖曳檔案到此處</h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    支援圖片、PDF、音訊與影片檔案
+                  </p>
                 </div>
               ) : (
                 <div className="flex flex-col h-full w-full">
                   {/* File List Header */}
-                  <div className="grid grid-cols-[1fr_120px_80px] gap-3 p-2 bg-surface2 border-b border-border font-bold shrink-0">
-                    <div>Filename</div>
-                    <div className="text-right">Size</div>
-                    <div className="text-right">Remove</div>
+                  <div className="grid grid-cols-[1fr_100px_80px] gap-4 p-3 border-b bg-muted/50 text-sm font-medium">
+                    <div>檔案名稱</div>
+                    <div className="text-right">大小</div>
+                    <div className="text-right">操作</div>
                   </div>
                   
                   {/* File List Rows */}
                   <div className="flex-1 overflow-auto">
                     {files.map((f, i) => (
-                      <div key={i} className="grid grid-cols-[1fr_120px_80px] gap-3 p-2 border-b border-border items-center hover:bg-surface transition-colors">
-                        <div className="truncate" title={f.path}>{f.name}</div>
-                        <div className="text-right font-mono text-sm">{bytesToSize(f.size || 0)}</div>
+                      <div key={i} className="grid grid-cols-[1fr_100px_80px] gap-4 p-3 border-b last:border-0 items-center hover:bg-muted/50 transition-colors text-sm group">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <FileIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <span className="truncate" title={f.path}>{f.name}</span>
+                        </div>
+                        <div className="text-right font-mono text-xs text-muted-foreground">{bytesToSize(f.size || 0)}</div>
                         <div className="text-right">
-                          <button 
-                            className="btn text-xs py-1 px-2 h-auto"
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={() => removeFile(i)}
                           >
-                            移除
-                          </button>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
                     ))}
                   </div>
-                  
-                  {/* Summary */}
-                  <div className="p-2 text-muted text-sm border-t border-border shrink-0 bg-surface2">
-                    {files.length} file(s) selected. Total size: {bytesToSize(totalSize)}
-                  </div>
                 </div>
               )}
             </div>
-
-            {/* Progress */}
-            <div className="h-2.5 bg-surface2 border border-border rounded-md my-2 overflow-hidden shrink-0">
-              <div 
-                className="h-full bg-primary transition-all duration-300 ease-out"
-                style={{ width: `${Math.max(0, Math.min(1, progress)) * 100}%` }}
-              ></div>
+            
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{status || (files.length > 0 ? "準備就緒" : "等待操作")}</span>
+                <span>{files.length} 個檔案 ({bytesToSize(totalSize)})</span>
+              </div>
+              <Progress value={progress} className="h-2" />
             </div>
-
-            {/* Status */}
-            <div className="text-muted text-xs min-h-[20px] shrink-0">{status}</div>
-
-            {/* Footer */}
-            <div className="flex justify-start mt-2 shrink-0">
-              <button 
-                className="btn primary" 
-                onClick={handleStart}
-                disabled={!action || files.length === 0 || isProcessing}
-              >
-                開始轉換
-              </button>
-            </div>
-
-          </div>
-
-          {/* Right Panel (Placeholder) */}
-          <div className="w-0"></div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )
