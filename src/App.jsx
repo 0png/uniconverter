@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
-import { FolderOpen, Play, Trash2, File as FileIcon, Upload, Settings, Home, Sun, Moon, Monitor, Languages } from "lucide-react"
+import { FolderOpen, Play, Trash2, File as FileIcon, Upload, Settings, Home, Sun, Moon, Monitor, LayoutGrid } from "lucide-react"
 
 const bytesToSize = (n) => {
   if (n < 1024) return `${n} B`
@@ -25,6 +25,7 @@ const detectType = (p) => {
 const translations = {
   en: {
     title: "File Converter",
+    appName: "UniConvert",
     selectFiles: "Select Files",
     start: "Start Convert",
     workspace: "Workspace",
@@ -38,6 +39,7 @@ const translations = {
     outputLocation: "Output Location",
     sourceLocation: "Original File Location",
     customFolder: "Custom Folder",
+    selectFolder: "Select Folder",
     light: "Light",
     dark: "Dark",
     system: "System",
@@ -72,6 +74,7 @@ const translations = {
   },
   "zh-TW": {
     title: "檔案轉換",
+    appName: "UniConvert",
     selectFiles: "選擇檔案",
     start: "開始轉換",
     workspace: "工作區",
@@ -85,6 +88,7 @@ const translations = {
     outputLocation: "儲存位置",
     sourceLocation: "原始檔案位置",
     customFolder: "自訂資料夾",
+    selectFolder: "選擇資料夾",
     light: "淺色",
     dark: "深色",
     system: "系統預設",
@@ -300,10 +304,8 @@ function App() {
       if (r && r.ok && r.data) {
         setProgress(100)
         setStatus(`${t('completed')} ${t('success')}:${r.data.ok} ${t('fail')}:${r.data.fail}`)
-        // alert(`${t('success')} ${r.data.ok}，${t('fail')} ${r.data.fail}`)
       } else {
         setStatus(t('execFail'))
-        // alert(t('execFail'))
       }
     } catch (e) {
       console.error(e)
@@ -319,12 +321,39 @@ function App() {
 
   const totalSize = files.reduce((acc, f) => acc + (f.size || 0), 0)
 
-  // --- Views ---
+  // --- Components ---
+
+  const Sidebar = () => (
+    <div className="w-64 border-r bg-muted/20 p-4 flex flex-col gap-2 shrink-0">
+      <div className="mb-6 px-2">
+        <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
+          {/* <LayoutGrid className="w-6 h-6" /> */}
+          {t('appName')}
+        </h1>
+      </div>
+      <Button 
+        variant={currentView === 'home' ? 'secondary' : 'ghost'} 
+        className="justify-start" 
+        onClick={() => setCurrentView('home')}
+      >
+        <Home className="mr-2 h-4 w-4" />
+        {t('workspace')}
+      </Button>
+      <Button 
+        variant={currentView === 'settings' ? 'secondary' : 'ghost'} 
+        className="justify-start" 
+        onClick={() => setCurrentView('settings')}
+      >
+        <Settings className="mr-2 h-4 w-4" />
+        {t('settings')}
+      </Button>
+    </div>
+  )
 
   const HomeView = () => (
     <div className="flex-1 flex flex-col h-full overflow-hidden p-6 gap-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">{t('title')}</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t('workspace')}</h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleChooseFiles}>
             <FolderOpen className="mr-2 h-4 w-4" />
@@ -337,15 +366,11 @@ function App() {
             <Play className="mr-2 h-4 w-4" />
             {t('start')}
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => setCurrentView('settings')}>
-            <Settings className="h-5 w-5" />
-          </Button>
         </div>
       </div>
 
       <Card className="flex-1 flex flex-col overflow-hidden">
         <CardHeader className="pb-4">
-          <CardTitle>{t('workspace')}</CardTitle>
           <CardDescription>
             {action ? `${t('currentAction')}: ${tAction(action)}` : t('selectAction')}
           </CardDescription>
@@ -428,9 +453,6 @@ function App() {
     <div className="flex-1 flex flex-col h-full overflow-hidden p-6 gap-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight">{t('settings')}</h1>
-        <Button variant="ghost" size="icon" onClick={() => setCurrentView('home')}>
-          <Home className="h-5 w-5" />
-        </Button>
       </div>
 
       <Card className="p-6">
@@ -511,7 +533,7 @@ function App() {
                 <Input 
                   value={outputConfig.path} 
                   readOnly 
-                  placeholder={t('selectFiles')} // Reusing "Select Files" or should be "Select Folder" but "Select Files" text is "選擇檔案". Let's use custom text
+                  placeholder={t('selectFolder')} 
                   className="flex-1"
                 />
                 <Button variant="secondary" onClick={handleChooseOutputPath}>
@@ -527,8 +549,11 @@ function App() {
   )
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
-      {currentView === 'home' ? <HomeView /> : <SettingsView />}
+    <div className="h-screen flex bg-background text-foreground transition-colors duration-300 overflow-hidden">
+      <Sidebar />
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {currentView === 'home' ? <HomeView /> : <SettingsView />}
+      </div>
     </div>
   )
 }
