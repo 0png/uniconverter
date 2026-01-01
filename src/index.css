@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0e0f11;
+  --color-surface: #141518;
+  --color-surface2: #1a1b1f;
+  --color-border: #2b2d33;
+  --color-text: #ffffff;
+  --color-muted: #c9c9c9;
+  --color-primary: #ffffff;
+  --color-hover: #e5e5e5;
+  --font-sans: "Segoe UI", system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-text font-sans select-none overflow-hidden m-0;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply bg-surface2 border border-border text-text px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-150 ease-out;
+  }
+  .btn:hover {
+    @apply bg-hover text-black;
+  }
+  .btn.primary {
+    @apply bg-primary text-black;
+  }
+  .btn:disabled {
+    @apply opacity-50 cursor-not-allowed pointer-events-none;
+  }
+  .btn.nav {
+    @apply w-full my-1.5;
+  }
+  .btn.option {
+    @apply bg-surface2;
+  }
+  .btn.option.active {
+    @apply bg-primary text-black;
+  }
+}
