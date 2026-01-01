@@ -6,6 +6,8 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1000,
     height: 650,
+    title: 'Uniconvert',
+    icon: path.join(__dirname, 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
@@ -13,7 +15,7 @@ function createWindow() {
   if (process.env.VITE_DEV_SERVER_URL) {
     win.loadURL(process.env.VITE_DEV_SERVER_URL)
   } else {
-    win.loadFile(path.join(__dirname, 'dist', 'index.html'))
+    win.loadFile(path.join(__dirname, 'web_dist', 'index.html'))
   }
   Menu.setApplicationMenu(null)
   win.setMenuBarVisibility(false)
