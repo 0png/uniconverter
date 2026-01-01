@@ -61,7 +61,7 @@
   }
   
   /* Dark mode by default for the app as requested "black and white" usually implies dark mode for developer tools */
-  :root {
+  :root.dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
     --card: 240 10% 3.9%;
