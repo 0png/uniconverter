@@ -1,0 +1,21 @@
+{
+  "name": "uniconvert-rebuilt",
+  "version": "1.0.0",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "echo \"Use electron-builder after setup\"",
+    "test": "node -e \"console.log('ok')\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "electron": "^31.0.0",
+    "ffmpeg-static": "^5.2.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "pdf-lib": "^1.17.1",
+    "sharp": "^0.33.5"
+  }
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniConvert GUI</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="root">
+    <div class="sidebar">
+      <div class="logo">UniConvert</div>
+      <button class="btn nav" id="nav-home">主頁</button>
+      <button class="btn nav" id="nav-settings">設定</button>
+    </div>
+    <div class="content">
+      <div class="header">UniConvert 檔案轉換</div>
+      <div class="toolbar">
+        <button class="btn" id="btn-choose-files">Choose Files</button>
+        <button class="btn" id="btn-output-dir">Output Folder</button>
+        <button class="btn primary" id="btn-start-top">開始轉換</button>
+      </div>
+      <div class="main">
+        <div class="left-panel">
+          <div id="actions" class="actions"></div>
+          <div id="drop-area" class="drop-area">
+            <div class="drop-empty">
+              <div class="drop-text">拖曳檔案到此處</div>
+              <div class="drop-tip">提示：可直接拖曳或使用上方按鈕加入檔案</div>
+            </div>
+            <div id="file-list" class="file-list hidden">
+              <div class="file-header">
+                <div class="col-name">Filename</div>
+                <div class="col-size">Size</div>
+                <div class="col-remove">Remove</div>
+              </div>
+              <div id="file-rows"></div>
+              <div id="summary" class="summary">0 file(s) selected. Total size: 0.00 KB</div>
+            </div>
+          </div>
+          <div class="progress">
+            <div id="progress-bar"></div>
+          </div>
+          <div id="status" class="status"></div>
+          <div class="footer">
+            <button class="btn primary" id="btn-start">開始轉換</button>
+          </div>
+        </div>
+        <div class="right-panel"></div>
+      </div>
+    </div>
+  </div>
+  <script src="index.js"></script>
+</body>
+</html>
