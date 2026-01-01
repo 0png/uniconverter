@@ -72,9 +72,3 @@
 
 ## 授權
 - 本專案採用 MIT 授權條款，詳見 [LICENSE](./LICENSE)。
-
-## 致謝
-- Electron、React、Vite、Tailwind CSS、shadcn/ui
-- pdf-lib、pdfjs-dist、skia-canvas
-- fluent-ffmpeg、ffmpeg-static
-
