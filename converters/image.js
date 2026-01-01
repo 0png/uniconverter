@@ -3,6 +3,16 @@ const fs = require('fs')
 let sharp
 try { sharp = require('sharp') } catch (e) { sharp = null }
 const { PDFDocument } = (() => { try { return require('pdf-lib') } catch (e) { return {} } })()
+let pdfjsLib
+let Canvas
+try {
+  pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js')
+  const skia = require('skia-canvas')
+  Canvas = skia.Canvas
+} catch (e) {
+  console.error('PDF rendering libs missing', e)
+}
+
 async function batchConvert(files, format, outputDir) {
   let ok = 0
   let fail = 0
@@ -53,6 +63,52 @@ async function mergeImagesToPDF(files, outputFile) {
   }
 }
 async function pdfEachPageToImage(files, format, outputDir) {
-  return { ok: 0, fail: files.length }
+  if (!pdfjsLib || !Canvas) return { ok: 0, fail: files.length }
+  
+  let ok = 0
+  let fail = 0
+  
+  for (const f of files) {
+    try {
+      const outDir = outputDir || path.dirname(f)
+      const base = path.basename(f, path.extname(f))
+      
+      const data = new Uint8Array(fs.readFileSync(f))
+      const loadingTask = pdfjsLib.getDocument({ 
+        data, 
+        cMapUrl: path.join(__dirname, '../node_modules/pdfjs-dist/cmaps/'),
+        cMapPacked: true,
+        standardFontDataUrl: path.join(__dirname, '../node_modules/pdfjs-dist/standard_fonts/')
+      })
+      const doc = await loadingTask.promise
+      
+      for (let i = 1; i <= doc.numPages; i++) {
+        const page = await doc.getPage(i)
+        const viewport = page.getViewport({ scale: 2.0 }) // ~144 DPI
+        
+        const canvas = new Canvas(viewport.width, viewport.height)
+        const context = canvas.getContext('2d')
+        
+        const renderContext = {
+          canvasContext: context,
+          viewport: viewport
+        }
+        
+        await page.render(renderContext).promise
+        
+        const out = path.join(outDir, `${base}_${i}.${format}`)
+        if (format === 'jpg' || format === 'jpeg') {
+           await canvas.saveAs(out, { format: 'jpeg', quality: 90 })
+        } else {
+           await canvas.saveAs(out, { format: 'png' })
+        }
+      }
+      ok++
+    } catch (e) {
+      console.error(e)
+      fail++
+    }
+  }
+  return { ok, fail }
 }
 module.exports = { batchConvert, mergeImagesToPDF, pdfEachPageToImage }

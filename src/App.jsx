@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
-import { FolderOpen, Play, Trash2, File as FileIcon, Upload, Settings, Home, Sun, Moon, Monitor, LayoutGrid } from "lucide-react"
+import { FolderOpen, Play, Trash2, File as FileIcon, Upload, Settings, Home, Sun, Moon, Monitor, LayoutGrid, Info } from "lucide-react"
 
 const bytesToSize = (n) => {
   if (n < 1024) return `${n} B`
@@ -34,6 +34,12 @@ const translations = {
     dragDrop: "Drag files here",
     dragDropDesc: "Supports images, PDF, audio and video files",
     settings: "Settings",
+    about: "About",
+    supportedFormats: "Supported Formats",
+    formats_images: "Images: PNG, JPG, JPEG, HEIC, WEBP, BMP -> PNG, JPG, PDF (Merge)",
+    formats_documents: "Documents: PDF -> PNG, JPG (Split Pages)",
+    formats_video: "Video: MP4, MOV, AVI, MKV -> MP4, MOV, MP3 (Extract)",
+    formats_audio: "Audio: MP3, WAV, M4A -> MP3, WAV, M4A",
     theme: "Theme",
     language: "Language",
     outputLocation: "Output Location",
@@ -83,7 +89,13 @@ const translations = {
     dragDrop: "拖曳檔案到此處",
     dragDropDesc: "支援圖片、PDF、音訊與影片檔案",
     settings: "設定",
-    theme: "外觀主題",
+    about: "關於",
+    supportedFormats: "支援格式",
+    formats_images: "圖片: PNG, JPG, JPEG, HEIC, WEBP, BMP -> PNG, JPG, PDF (合併)",
+    formats_documents: "文件: PDF -> PNG, JPG (每頁拆分)",
+    formats_video: "影片: MP4, MOV, AVI, MKV -> MP4, MOV, MP3 (提取音訊)",
+    formats_audio: "音訊: MP3, WAV, M4A -> MP3, WAV, M4A",
+    theme: "主題",
     language: "語言",
     outputLocation: "儲存位置",
     sourceLocation: "原始檔案位置",
@@ -107,6 +119,7 @@ const translations = {
     selectActionFirst: "請先選擇檔案與操作",
     executing: "執行中...",
     execFail: "執行失敗",
+    conversion_success: "轉換成功",
     actions: {
       '合併圖片為PDF': '合併圖片為PDF',
       '批量轉PNG': '批量轉PNG',
@@ -304,6 +317,7 @@ function App() {
       if (r && r.ok && r.data) {
         setProgress(100)
         setStatus(`${t('completed')} ${t('success')}:${r.data.ok} ${t('fail')}:${r.data.fail}`)
+        setFiles([])
       } else {
         setStatus(t('execFail'))
       }
@@ -347,6 +361,53 @@ function App() {
         <Settings className="mr-2 h-4 w-4" />
         {t('settings')}
       </Button>
+      <Button 
+        variant={currentView === 'about' ? 'secondary' : 'ghost'} 
+        className="justify-start" 
+        onClick={() => setCurrentView('about')}
+      >
+        <Info className="mr-2 h-4 w-4" />
+        {t('about')}
+      </Button>
+    </div>
+  )
+
+  const AboutView = () => (
+    <div className="flex-1 flex flex-col h-full overflow-hidden p-6 gap-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold tracking-tight">{t('about')}</h1>
+      </div>
+      <Card className="p-6">
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <h2 className="text-lg font-semibold">{t('appName')}</h2>
+            <p className="text-sm text-muted-foreground">
+              beta
+            </p>
+          </div>
+          <div className="space-y-4">
+            <h3 className="text-base font-medium">{t('supportedFormats')}</h3>
+            <ul className="space-y-3 text-sm text-muted-foreground">
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                <span>{t('formats_images')}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                <span>{t('formats_documents')}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                <span>{t('formats_video')}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                <span>{t('formats_audio')}</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </Card>
     </div>
   )
 
@@ -549,10 +610,12 @@ function App() {
   )
 
   return (
-    <div className="h-screen flex bg-background text-foreground transition-colors duration-300 overflow-hidden">
+    <div className="h-screen flex bg-background text-foreground transition-colors duration-300 overflow-hidden relative">
       <Sidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
-        {currentView === 'home' ? <HomeView /> : <SettingsView />}
+        {currentView === 'home' && <HomeView />}
+        {currentView === 'settings' && <SettingsView />}
+        {currentView === 'about' && <AboutView />}
       </div>
     </div>
   )

@@ -22,9 +22,11 @@
     "fluent-ffmpeg": "^2.1.2",
     "lucide-react": "^0.562.0",
     "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^5.4.530",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "sharp": "^0.33.5",
+    "skia-canvas": "^3.0.8",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {

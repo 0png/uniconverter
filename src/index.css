@@ -87,6 +87,6 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased m-0 overflow-hidden;
+    @apply bg-background text-foreground font-sans antialiased m-0 overflow-hidden select-none;
   }
 }
