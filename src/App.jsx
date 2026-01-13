@@ -5,6 +5,7 @@ import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
+import { ToastProvider, useToast } from "@/components/ui/toast"
 import { FolderOpen, Play, Trash2, File as FileIcon, Upload, Settings, Home, Sun, Moon, Monitor, LayoutGrid, Info } from "lucide-react"
 
 const bytesToSize = (n) => {
@@ -64,6 +65,11 @@ const translations = {
     selectActionFirst: "Please select files and action first",
     executing: "Executing...",
     execFail: "Execution failed",
+    conversionComplete: "Conversion Complete",
+    filesConverted: "files converted successfully",
+    conversionFailed: "Conversion Failed",
+    partialSuccess: "Partial Success",
+    someFilesFailed: "Some files failed to convert",
     actions: {
       '合併圖片為PDF': 'Merge Images to PDF',
       '批量轉PNG': 'Batch to PNG',
@@ -119,6 +125,11 @@ const translations = {
     selectActionFirst: "請先選擇檔案與操作",
     executing: "執行中...",
     execFail: "執行失敗",
+    conversionComplete: "轉換完成",
+    filesConverted: "個檔案轉換成功",
+    conversionFailed: "轉換失敗",
+    partialSuccess: "部分成功",
+    someFilesFailed: "部分檔案轉換失敗",
     conversion_success: "轉換成功",
     actions: {
       '合併圖片為PDF': '合併圖片為PDF',
@@ -137,6 +148,16 @@ const translations = {
 }
 
 function App() {
+  return (
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
+  )
+}
+
+function AppContent() {
+  const toast = useToast()
+  
   // --- View State ---
   const [currentView, setCurrentView] = useState('home') // 'home' | 'settings'
 
@@ -300,7 +321,7 @@ function App() {
 
   const handleStart = async () => {
     if (!files.length || !action) {
-      setStatus(t('selectActionFirst'))
+      toast.warning(t('selectActionFirst'))
       return
     }
     setIsProcessing(true)
@@ -316,26 +337,47 @@ function App() {
       const r = await window.api.doAction(payload)
       if (r && r.ok && r.data) {
         setProgress(100)
-        // 顯示詳細錯誤訊息
-        let statusMsg = `${t('completed')} ${t('success')}:${r.data.ok} ${t('fail')}:${r.data.fail}`
-        if (r.data.errors && r.data.errors.length > 0) {
-          const firstError = r.data.errors[0]
-          statusMsg += ` - ${firstError.error}`
-          console.error('Conversion errors:', r.data.errors)
-        }
-        setStatus(statusMsg)
-        if (r.data.ok > 0) {
+        
+        const { ok: successCount, fail: failCount, errors } = r.data
+        
+        if (failCount === 0 && successCount > 0) {
+          // 全部成功
+          toast.success(
+            t('conversionComplete'),
+            `${successCount} ${t('filesConverted')}`
+          )
+          setStatus(t('ready'))
           setFiles([])
+        } else if (successCount > 0 && failCount > 0) {
+          // 部分成功
+          const errorMsg = errors?.[0]?.error || ''
+          toast.warning(
+            t('partialSuccess'),
+            `${successCount} ${t('success')}, ${failCount} ${t('fail')}${errorMsg ? `: ${errorMsg}` : ''}`
+          )
+          setStatus(t('ready'))
+          setFiles([])
+        } else {
+          // 全部失敗
+          const errorMsg = errors?.[0]?.error || t('execFail')
+          toast.error(t('conversionFailed'), errorMsg)
+          setStatus(t('ready'))
+        }
+        
+        if (errors?.length > 0) {
+          console.error('Conversion errors:', errors)
         }
       } else {
-        // 顯示錯誤訊息
+        // API 錯誤
         const errorMsg = r?.error || t('execFail')
-        setStatus(`${t('execFail')}: ${errorMsg}`)
+        toast.error(t('conversionFailed'), errorMsg)
+        setStatus(t('ready'))
         console.error('Action failed:', r)
       }
     } catch (e) {
       console.error(e)
-      setStatus(`${t('execFail')}: ${e.message}`)
+      toast.error(t('conversionFailed'), e.message)
+      setStatus(t('ready'))
     } finally {
       setIsProcessing(false)
     }
