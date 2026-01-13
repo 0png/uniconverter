@@ -9,12 +9,28 @@ const heicConvertDep = checkDependency('heic-convert')
 
 let pdfjsLib = null
 let Canvas = null
-try {
-  pdfjsLib = require('pdfjs-dist/legacy/build/pdf.js')
-  const skia = require('skia-canvas')
-  Canvas = skia.Canvas
-} catch (e) {
-  console.error('PDF rendering libs missing:', e.message)
+let pdfLoadError = null
+
+// 動態載入 pdfjs-dist (ESM 模組)
+async function loadPdfJs() {
+  if (pdfjsLib) return true
+  if (pdfLoadError) return false
+  
+  try {
+    // 使用動態 import 載入 ESM 模組
+    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
+    pdfjsLib = pdfjs
+    
+    // 載入 skia-canvas
+    const skia = require('skia-canvas')
+    Canvas = skia.Canvas
+    
+    return true
+  } catch (e) {
+    pdfLoadError = e.message
+    console.error('PDF rendering libs missing:', e.message)
+    return false
+  }
 }
 
 const sharp = sharpDep.available ? sharpDep.module : null
@@ -208,10 +224,14 @@ async function pdfEachPageToImage(files, format, outputDir) {
   let ok = 0
   let fail = 0
 
-  if (!pdfjsLib || !Canvas) {
+  // 動態載入 pdfjs
+  const pdfLoaded = await loadPdfJs()
+  
+  if (!pdfLoaded || !pdfjsLib || !Canvas) {
+    const errorMsg = pdfLoadError || 'pdfjs-dist or skia-canvas is not available'
     return createResult(0, files.length, files.map(f => ({ 
       file: f, 
-      error: 'pdfjs-dist or skia-canvas is not available' 
+      error: errorMsg
     })))
   }
 
@@ -234,7 +254,8 @@ async function pdfEachPageToImage(files, format, outputDir) {
         data,
         cMapUrl: path.join(__dirname, '../node_modules/pdfjs-dist/cmaps/'),
         cMapPacked: true,
-        standardFontDataUrl: path.join(__dirname, '../node_modules/pdfjs-dist/standard_fonts/')
+        standardFontDataUrl: path.join(__dirname, '../node_modules/pdfjs-dist/standard_fonts/'),
+        useSystemFonts: true
       })
       
       const doc = await loadingTask.promise
