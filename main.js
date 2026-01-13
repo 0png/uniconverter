@@ -1,7 +1,10 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu, shell } = require('electron')
 const path = require('path')
 const { processAction } = require('./converters')
+const { initAutoUpdater } = require('./updater')
+
 let win
+
 function createWindow() {
   win = new BrowserWindow({
     width: 1000,
@@ -19,6 +22,11 @@ function createWindow() {
   }
   Menu.setApplicationMenu(null)
   win.setMenuBarVisibility(false)
+  
+  // 初始化自動更新（僅在打包後的環境中啟用）
+  if (!process.env.VITE_DEV_SERVER_URL) {
+    initAutoUpdater(win)
+  }
 }
 app.whenReady().then(() => {
   createWindow()
