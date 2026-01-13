@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { ToastProvider, useToast } from "@/components/ui/toast"
 import { TaskGroup } from "@/components/TaskGroup"
+import { UpdateNotification, CheckUpdateButton } from "@/components/UpdateNotification"
 import { FolderOpen, Play, Upload, Settings, Home, Sun, Moon, Monitor, Info, Trash2 } from "lucide-react"
 import { 
   createInitialTaskQueue, 
@@ -540,6 +541,12 @@ function AppContent() {
               <p>{t('copyright')}: © 2026 0png. All rights reserved.</p>
             </div>
           </div>
+          
+          {/* 檢查更新按鈕 */}
+          <div className="pt-2">
+            <CheckUpdateButton language={language} />
+          </div>
+          
           <div className="space-y-4">
             <h3 className="text-base font-medium">{t('supportedFormats')}</h3>
             <ul className="space-y-3 text-sm text-muted-foreground">
@@ -775,6 +782,8 @@ function AppContent() {
         {currentView === 'settings' && <SettingsView />}
         {currentView === 'about' && <AboutView />}
       </div>
+      {/* 自動更新通知 */}
+      <UpdateNotification language={language} />
     </div>
   )
 }
