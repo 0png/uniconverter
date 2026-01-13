@@ -536,7 +536,7 @@ function AppContent() {
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">{t('appName')}</h2>
             <div className="text-sm text-muted-foreground space-y-1">
-              <p>{t('version')}: 1.0.0</p>
+              <p>{t('version')}: 1.1.1</p>
               <p>{t('author')}: 0png</p>
               <p>{t('copyright')}: © 2026 0png. All rights reserved.</p>
             </div>
