@@ -7,7 +7,8 @@ export const defaultFormats = {
   image: 'png',
   video: 'mp4',
   audio: 'mp3',
-  document: 'png'
+  document: 'png',
+  markdown: 'pdf'
 }
 
 // 可用操作配置
@@ -35,6 +36,9 @@ export const availableActions = {
   document: [
     { id: 'png', action: 'PDF每頁轉PNG', recommended: true },
     { id: 'jpg', action: 'PDF每頁轉JPG' }
+  ],
+  markdown: [
+    { id: 'pdf', action: 'Markdown轉PDF', recommended: true }
   ]
 }
 
@@ -43,7 +47,8 @@ export const typeIconNames = {
   image: 'Image',
   video: 'Video',
   audio: 'Music',
-  document: 'FileText'
+  document: 'FileText',
+  markdown: 'FileCode'
 }
 
 // 建立空的任務群組
@@ -64,7 +69,8 @@ export function createInitialTaskQueue() {
     image: createEmptyGroup('image'),
     video: createEmptyGroup('video'),
     audio: createEmptyGroup('audio'),
-    document: createEmptyGroup('document')
+    document: createEmptyGroup('document'),
+    markdown: createEmptyGroup('markdown')
   }
 }
 
@@ -73,6 +79,7 @@ export function detectFileType(filePath) {
   const ext = (filePath.split('.').pop() || '').toLowerCase()
   if (['png', 'jpg', 'jpeg', 'heic', 'heif', 'webp', 'bmp', 'gif', 'tiff', 'tif', 'ico', 'avif', 'svg'].includes(ext)) return 'image'
   if (['pdf'].includes(ext)) return 'document'
+  if (['md', 'markdown'].includes(ext)) return 'markdown'
   if (['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv', 'wmv'].includes(ext)) return 'video'
   if (['mp3', 'wav', 'm4a', 'flac', 'ogg', 'aac', 'wma'].includes(ext)) return 'audio'
   return 'unknown'

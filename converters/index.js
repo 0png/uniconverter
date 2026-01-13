@@ -3,6 +3,7 @@ const { ensureDir, createResult } = require('./utils')
 const image = require('./image')
 const video = require('./video')
 const audio = require('./audio')
+const document = require('./document')
 
 /**
  * 處理轉換動作
@@ -81,6 +82,9 @@ async function processAction(action, files, outputDir) {
 
     case '批量轉M4A':
       return await audio.batchConvertAudio(files, 'm4a', outputDir)
+
+    case 'Markdown轉PDF':
+      return await document.markdownToPdf(files, outputDir)
 
     default:
       return createResult(0, files.length, files.map(f => ({ 

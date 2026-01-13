@@ -30,6 +30,7 @@
     "fluent-ffmpeg": "^2.1.2",
     "heic-convert": "^2.1.0",
     "lucide-react": "^0.562.0",
+    "md-to-pdf": "^5.2.5",
     "pdf-lib": "^1.17.1",
     "pdf-to-png-converter": "^3.11.0",
     "pdfjs-dist": "^5.4.530",

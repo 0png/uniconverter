@@ -44,6 +44,7 @@ const translations = {
     supportedFormats: "Supported Formats",
     formats_images: "Images: PNG, JPG, JPEG, HEIC, WEBP, BMP, GIF, TIFF, ICO -> PNG, JPG, WEBP, ICO, BMP, GIF, TIFF, PDF (Merge)",
     formats_documents: "Documents: PDF -> PNG, JPG (Split Pages)",
+    formats_markdown: "Markdown: MD -> PDF",
     formats_video: "Video: MP4, MOV, AVI, MKV -> MP4, MOV, MP3 (Extract)",
     formats_audio: "Audio: MP3, WAV, M4A -> MP3, WAV, M4A",
     theme: "Theme",
@@ -82,6 +83,7 @@ const translations = {
     typeVideo: "Videos",
     typeAudio: "Audio",
     typeDocument: "Documents",
+    typeMarkdown: "Markdown",
     recommended: "Rec",
     more: "More",
     clearAll: "Clear All",
@@ -118,7 +120,8 @@ const translations = {
       '批量轉/提取MP3': 'Batch to/Extract MP3',
       '批量轉MP3': 'Batch to MP3',
       '批量轉WAV': 'Batch to WAV',
-      '批量轉M4A': 'Batch to M4A'
+      '批量轉M4A': 'Batch to M4A',
+      'Markdown轉PDF': 'Markdown to PDF'
     }
   },
   "zh-TW": {
@@ -138,6 +141,7 @@ const translations = {
     supportedFormats: "支援格式",
     formats_images: "圖片: PNG, JPG, JPEG, HEIC, WEBP, BMP, GIF, TIFF, ICO -> PNG, JPG, WEBP, ICO, BMP, GIF, TIFF, PDF (合併)",
     formats_documents: "文件: PDF -> PNG, JPG (每頁拆分)",
+    formats_markdown: "Markdown: MD -> PDF",
     formats_video: "影片: MP4, MOV, AVI, MKV -> MP4, MOV, MP3 (提取音訊)",
     formats_audio: "音訊: MP3, WAV, M4A -> MP3, WAV, M4A",
     theme: "主題",
@@ -176,6 +180,7 @@ const translations = {
     typeVideo: "影片",
     typeAudio: "音訊",
     typeDocument: "文件",
+    typeMarkdown: "Markdown",
     recommended: "推薦",
     more: "更多",
     clearAll: "清除全部",
@@ -212,7 +217,8 @@ const translations = {
       '批量轉/提取MP3': '批量轉/提取MP3',
       '批量轉MP3': '批量轉MP3',
       '批量轉WAV': '批量轉WAV',
-      '批量轉M4A': '批量轉M4A'
+      '批量轉M4A': '批量轉M4A',
+      'Markdown轉PDF': 'Markdown轉PDF'
     }
   }
 }
