@@ -76,6 +76,8 @@
       "updater.js",
       "discord-rpc.js",
       "converters/**/*",
+      "lib/**/*",
+      "!lib/*.test.js",
       "icon.png",
       "package.json",
       "!node_modules/**/*.md",

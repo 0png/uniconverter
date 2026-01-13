@@ -3,6 +3,7 @@ const path = require('path')
 const { processAction } = require('./converters')
 const { initAutoUpdater } = require('./updater')
 const { initDiscordRPC, updatePresence, destroyDiscordRPC, setDiscordRPCEnabled, getDiscordRPCStatus } = require('./discord-rpc')
+const historyManager = require('./lib/historyManager')
 
 let win
 
@@ -104,4 +105,57 @@ ipcMain.handle('discord:set-enabled', async (e, enabled) => {
 
 ipcMain.handle('discord:get-status', async () => {
   return getDiscordRPCStatus()
+})
+
+// History IPC handlers
+ipcMain.handle('history:get-all', async () => {
+  try {
+    return { ok: true, data: await historyManager.getAll() }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
+
+ipcMain.handle('history:add', async (e, entry) => {
+  try {
+    const newEntry = await historyManager.addEntry(entry)
+    return { ok: true, data: newEntry }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
+
+ipcMain.handle('history:remove', async (e, id) => {
+  try {
+    const result = await historyManager.removeEntry(id)
+    return { ok: true, data: result }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
+
+ipcMain.handle('history:clear', async () => {
+  try {
+    await historyManager.clearAll()
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
+
+ipcMain.handle('history:get-counts', async () => {
+  try {
+    return { ok: true, data: await historyManager.getEntryCounts() }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
+
+ipcMain.handle('history:open-location', async (e, filePath) => {
+  try {
+    await shell.showItemInFolder(filePath)
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
 })

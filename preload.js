@@ -28,5 +28,15 @@ contextBridge.exposeInMainWorld('api', {
   discord: {
     setEnabled: (enabled) => ipcRenderer.invoke('discord:set-enabled', enabled),
     getStatus: () => ipcRenderer.invoke('discord:get-status')
+  },
+  
+  // History API
+  history: {
+    getAll: () => ipcRenderer.invoke('history:get-all'),
+    add: (entry) => ipcRenderer.invoke('history:add', entry),
+    remove: (id) => ipcRenderer.invoke('history:remove', id),
+    clear: () => ipcRenderer.invoke('history:clear'),
+    getCounts: () => ipcRenderer.invoke('history:get-counts'),
+    openLocation: (filePath) => ipcRenderer.invoke('history:open-location', filePath)
   }
 })
