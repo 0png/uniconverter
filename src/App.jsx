@@ -316,14 +316,26 @@ function App() {
       const r = await window.api.doAction(payload)
       if (r && r.ok && r.data) {
         setProgress(100)
-        setStatus(`${t('completed')} ${t('success')}:${r.data.ok} ${t('fail')}:${r.data.fail}`)
-        setFiles([])
+        // 顯示詳細錯誤訊息
+        let statusMsg = `${t('completed')} ${t('success')}:${r.data.ok} ${t('fail')}:${r.data.fail}`
+        if (r.data.errors && r.data.errors.length > 0) {
+          const firstError = r.data.errors[0]
+          statusMsg += ` - ${firstError.error}`
+          console.error('Conversion errors:', r.data.errors)
+        }
+        setStatus(statusMsg)
+        if (r.data.ok > 0) {
+          setFiles([])
+        }
       } else {
-        setStatus(t('execFail'))
+        // 顯示錯誤訊息
+        const errorMsg = r?.error || t('execFail')
+        setStatus(`${t('execFail')}: ${errorMsg}`)
+        console.error('Action failed:', r)
       }
     } catch (e) {
       console.error(e)
-      setStatus(t('execFail'))
+      setStatus(`${t('execFail')}: ${e.message}`)
     } finally {
       setIsProcessing(false)
     }

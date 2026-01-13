@@ -39,9 +39,12 @@ ipcMain.handle('select-dir', async () => {
 })
 ipcMain.handle('do-action', async (e, payload) => {
   try {
+    console.log('[do-action] Starting:', payload.action, 'Files:', payload.files?.length || 0)
     const data = await processAction(payload.action, payload.files || [], payload.output_dir || null)
+    console.log('[do-action] Result:', JSON.stringify(data))
     return { ok: true, data }
   } catch (err) {
-    return { ok: false, error: String(err && err.message ? err.message : err) }
+    console.error('[do-action] Error:', err)
+    return { ok: false, error: String(err && err.message ? err.message : err), stack: err?.stack }
   }
 })

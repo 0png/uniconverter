@@ -17,18 +17,23 @@ async function loadPdfJs() {
   if (pdfLoadError) return false
   
   try {
+    console.log('[loadPdfJs] Loading pdfjs-dist...')
     // 使用動態 import 載入 ESM 模組
     const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
     pdfjsLib = pdfjs
+    console.log('[loadPdfJs] pdfjs-dist loaded successfully')
     
     // 載入 skia-canvas
+    console.log('[loadPdfJs] Loading skia-canvas...')
     const skia = require('skia-canvas')
     Canvas = skia.Canvas
+    console.log('[loadPdfJs] skia-canvas loaded successfully')
     
     return true
   } catch (e) {
-    pdfLoadError = e.message
-    console.error('PDF rendering libs missing:', e.message)
+    pdfLoadError = e.message + (e.stack ? '\n' + e.stack : '')
+    console.error('[loadPdfJs] Failed to load PDF libs:', e.message)
+    console.error('[loadPdfJs] Stack:', e.stack)
     return false
   }
 }
@@ -224,11 +229,14 @@ async function pdfEachPageToImage(files, format, outputDir) {
   let ok = 0
   let fail = 0
 
+  console.log('[pdfEachPageToImage] Starting, files:', files.length, 'format:', format)
+  
   // 動態載入 pdfjs
   const pdfLoaded = await loadPdfJs()
   
   if (!pdfLoaded || !pdfjsLib || !Canvas) {
     const errorMsg = pdfLoadError || 'pdfjs-dist or skia-canvas is not available'
+    console.error('[pdfEachPageToImage] PDF libs not available:', errorMsg)
     return createResult(0, files.length, files.map(f => ({ 
       file: f, 
       error: errorMsg
@@ -237,6 +245,8 @@ async function pdfEachPageToImage(files, format, outputDir) {
 
   for (const f of files) {
     try {
+      console.log('[pdfEachPageToImage] Processing:', f)
+      
       // 驗證檔案存在
       if (!await fileExists(f)) {
         errors.push({ file: f, error: 'File does not exist' })
@@ -250,6 +260,7 @@ async function pdfEachPageToImage(files, format, outputDir) {
       const base = path.basename(f, path.extname(f))
       const data = new Uint8Array(fs.readFileSync(f))
       
+      console.log('[pdfEachPageToImage] Loading PDF document...')
       const loadingTask = pdfjsLib.getDocument({
         data,
         cMapUrl: path.join(__dirname, '../node_modules/pdfjs-dist/cmaps/'),
@@ -259,8 +270,10 @@ async function pdfEachPageToImage(files, format, outputDir) {
       })
       
       const doc = await loadingTask.promise
+      console.log('[pdfEachPageToImage] PDF loaded, pages:', doc.numPages)
       
       for (let i = 1; i <= doc.numPages; i++) {
+        console.log('[pdfEachPageToImage] Rendering page', i)
         const page = await doc.getPage(i)
         const viewport = page.getViewport({ scale: 2.0 }) // ~144 DPI
         
@@ -273,6 +286,7 @@ async function pdfEachPageToImage(files, format, outputDir) {
         }).promise
         
         const out = path.join(outDir, `${base}_${i}.${format}`)
+        console.log('[pdfEachPageToImage] Saving to:', out)
         
         if (format === 'jpg' || format === 'jpeg') {
           await canvas.saveAs(out, { format: 'jpeg', quality: 90 })
@@ -282,12 +296,16 @@ async function pdfEachPageToImage(files, format, outputDir) {
       }
       
       ok++
+      console.log('[pdfEachPageToImage] File completed:', f)
     } catch (e) {
+      console.error('[pdfEachPageToImage] Error processing', f, ':', e.message)
+      console.error('[pdfEachPageToImage] Stack:', e.stack)
       errors.push({ file: f, error: e.message || String(e) })
       fail++
     }
   }
   
+  console.log('[pdfEachPageToImage] Done. ok:', ok, 'fail:', fail)
   return createResult(ok, fail, errors)
 }
 
