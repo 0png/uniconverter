@@ -9,9 +9,9 @@ import { ToastProvider, useToast } from "@/components/ui/toast"
 import { TaskGroup } from "@/components/TaskGroup"
 import { UpdateNotification, CheckUpdateButton } from "@/components/UpdateNotification"
 import { FolderOpen, Play, Upload, Settings, Home, Sun, Moon, Monitor, Info, Trash2 } from "lucide-react"
-import { 
-  createInitialTaskQueue, 
-  groupFilesToQueue, 
+import {
+  createInitialTaskQueue,
+  groupFilesToQueue,
   getActiveGroupTypes,
   getTotalFileCount,
   getTotalFileSize,
@@ -567,9 +567,11 @@ function AppContent() {
             <Card className="p-6">
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <span className="text-3xl font-bold text-primary">U</span>
-                  </div>
+                  <img 
+                    src="./icon.png" 
+                    alt="Uniconvert" 
+                    className="w-16 h-16 rounded-xl"
+                  />
                   <div>
                     <h2 className="text-xl font-semibold">{t('appName')}</h2>
                     <p className="text-sm text-muted-foreground">{t('description')}</p>
@@ -579,7 +581,7 @@ function AppContent() {
                 <div className="grid grid-cols-2 gap-4 pt-2">
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">{t('version')}</p>
-                    <p className="text-sm font-medium">1.1.1</p>
+                    <p className="text-sm font-medium">1.1.2</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">{t('author')}</p>
@@ -591,7 +593,7 @@ function AppContent() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">{t('copyright')}</p>
-                    <p className="text-sm font-medium">© 2025 0png</p>
+                    <p className="text-sm font-medium">© 2026 0png</p>
                   </div>
                 </div>
                 
