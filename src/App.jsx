@@ -747,15 +747,18 @@ function AppContent() {
             <Label className="text-base">{t('openFolderAfterConversion')}</Label>
             <button
               onClick={() => setOpenFolderAfterConversion(!openFolderAfterConversion)}
-              className={`w-12 h-6 rounded-full transition-colors relative ${
-                openFolderAfterConversion ? 'bg-primary' : 'bg-muted'
-              }`}
+              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors
+                ${openFolderAfterConversion 
+                  ? 'bg-primary border-primary text-primary-foreground' 
+                  : 'border-muted-foreground/50 hover:border-muted-foreground bg-transparent'
+                }
+              `}
             >
-              <span 
-                className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-                  openFolderAfterConversion ? 'translate-x-7' : 'translate-x-1'
-                }`}
-              />
+              {openFolderAfterConversion && (
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
             </button>
           </div>
 
