@@ -6,21 +6,23 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { ToastProvider, useToast } from "@/components/ui/toast"
-import { FolderOpen, Play, Trash2, File as FileIcon, Upload, Settings, Home, Sun, Moon, Monitor, Info } from "lucide-react"
+import { TaskGroup } from "@/components/TaskGroup"
+import { FolderOpen, Play, Upload, Settings, Home, Sun, Moon, Monitor, Info, Trash2 } from "lucide-react"
+import { 
+  createInitialTaskQueue, 
+  groupFilesToQueue, 
+  getActiveGroupTypes,
+  getTotalFileCount,
+  getTotalFileSize,
+  isAnyProcessing,
+  hasEnabledGroups,
+  availableActions
+} from "@/lib/taskQueue"
 
 const bytesToSize = (n) => {
   if (n < 1024) return `${n} B`
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(2)} KB`
   return `${(n / (1024 * 1024)).toFixed(2)} MB`
-}
-
-const detectType = (p) => {
-  const ext = (p.split('.').pop() || '').toLowerCase()
-  if (['png', 'jpg', 'jpeg', 'heic', 'webp', 'bmp'].includes(ext)) return 'image'
-  if (['pdf'].includes(ext)) return 'document'
-  if (['mp4', 'mov', 'avi', 'mkv'].includes(ext)) return 'video'
-  if (['mp3', 'wav', 'm4a'].includes(ext)) return 'audio'
-  return 'unknown'
 }
 
 const translations = {
@@ -29,6 +31,8 @@ const translations = {
     appName: "UniConvert",
     selectFiles: "Select Files",
     start: "Start Convert",
+    startAll: "Start All",
+    startGroup: "Start",
     workspace: "Workspace",
     selectAction: "Please select files to view available actions",
     currentAction: "Current Action",
@@ -57,6 +61,7 @@ const translations = {
     completed: "Completed",
     success: "Success",
     fail: "Fail",
+    error: "Error",
     fileName: "File Name",
     size: "Size",
     action: "Action",
@@ -71,6 +76,15 @@ const translations = {
     partialSuccess: "Partial Success",
     someFilesFailed: "Some files failed to convert",
     conversion_success: "Conversion successful",
+    // 新增翻譯
+    typeImage: "Images",
+    typeVideo: "Videos",
+    typeAudio: "Audio",
+    typeDocument: "Documents",
+    recommended: "Rec",
+    more: "More",
+    clearAll: "Clear All",
+    noFiles: "No files added",
     actions: {
       '合併圖片為PDF': 'Merge Images to PDF',
       '批量轉PNG': 'Batch to PNG',
@@ -90,6 +104,8 @@ const translations = {
     appName: "UniConvert",
     selectFiles: "選擇檔案",
     start: "開始轉換",
+    startAll: "全部開始",
+    startGroup: "開始",
     workspace: "工作區",
     selectAction: "請選擇檔案以檢視可用操作",
     currentAction: "目前操作",
@@ -118,6 +134,7 @@ const translations = {
     completed: "完成",
     success: "成功",
     fail: "失敗",
+    error: "錯誤",
     fileName: "檔案名稱",
     size: "大小",
     action: "操作",
@@ -132,6 +149,15 @@ const translations = {
     partialSuccess: "部分成功",
     someFilesFailed: "部分檔案轉換失敗",
     conversion_success: "轉換成功",
+    // 新增翻譯
+    typeImage: "圖片",
+    typeVideo: "影片",
+    typeAudio: "音訊",
+    typeDocument: "文件",
+    recommended: "推薦",
+    more: "更多",
+    clearAll: "清除全部",
+    noFiles: "尚未加入檔案",
     actions: {
       '合併圖片為PDF': '合併圖片為PDF',
       '批量轉PNG': '批量轉PNG',
@@ -175,13 +201,10 @@ function AppContent() {
     }
   })
 
-  // --- App State ---
-  const [files, setFiles] = useState([])
-  const [action, setAction] = useState(null)
-  const [suggestedActions, setSuggestedActions] = useState([])
+  // --- Task Queue State ---
+  const [taskQueue, setTaskQueue] = useState(createInitialTaskQueue)
   const [status, setStatus] = useState('')
   const [progress, setProgress] = useState(0)
-  const [isProcessing, setIsProcessing] = useState(false)
 
   // --- Effects ---
 
@@ -218,35 +241,6 @@ function AppContent() {
     root.classList.add(theme)
   }, [theme])
 
-  // File Analysis
-  useEffect(() => {
-    const types = new Set(files.map(f => detectType(f.path)))
-    const actions = []
-    if (types.has('image')) {
-      if (files.length > 1) actions.push('合併圖片為PDF')
-      actions.push('批量轉PNG', '批量轉JPG')
-    }
-    if (types.has('document')) {
-      actions.push('PDF每頁轉PNG', 'PDF每頁轉JPG')
-    }
-    if (types.has('video')) {
-      actions.push('批量轉MP4', '批量轉MOV', '批量轉/提取MP3')
-    }
-    if (types.has('audio')) {
-      actions.push('批量轉MP3', '批量轉WAV', '批量轉M4A')
-    }
-    if (actions.length === 0 && files.length > 0) {
-      actions.push('合併圖片為PDF')
-    }
-    
-    const uniqueActions = Array.from(new Set(actions))
-    setSuggestedActions(uniqueActions)
-    
-    if (!uniqueActions.includes(action)) {
-      setAction(null)
-    }
-  }, [files])
-
   // --- Translation Helper ---
   const getLanguage = () => {
     if (language === 'system') {
@@ -268,17 +262,7 @@ function AppContent() {
   // --- Handlers ---
 
   const addFiles = (newFiles) => {
-    setFiles(prev => {
-      const next = [...prev]
-      const seen = new Set(prev.map(f => f.path))
-      for (const f of newFiles) {
-        if (!seen.has(f.path)) {
-          next.push(f)
-          seen.add(f.path)
-        }
-      }
-      return next
-    })
+    setTaskQueue(prev => groupFilesToQueue(newFiles, prev))
   }
 
   const handleChooseFiles = async () => {
@@ -320,75 +304,147 @@ function AppContent() {
 
   const handleDragOver = (e) => e.preventDefault()
 
-  const handleStart = async () => {
-    if (!files.length || !action) {
-      toast.warning(t('selectActionFirst'))
+  // 更新群組輸出格式
+  const handleFormatChange = (type, format) => {
+    setTaskQueue(prev => ({
+      ...prev,
+      [type]: { ...prev[type], outputFormat: format }
+    }))
+  }
+
+  // 切換群組啟用狀態
+  const handleToggleGroup = (type) => {
+    setTaskQueue(prev => ({
+      ...prev,
+      [type]: { ...prev[type], enabled: !prev[type].enabled }
+    }))
+  }
+
+  // 移除單一檔案
+  const handleRemoveFile = (type, index) => {
+    setTaskQueue(prev => ({
+      ...prev,
+      [type]: {
+        ...prev[type],
+        files: prev[type].files.filter((_, i) => i !== index)
+      }
+    }))
+  }
+
+  // 清除所有檔案
+  const handleClearAll = () => {
+    setTaskQueue(createInitialTaskQueue())
+    setProgress(0)
+    setStatus('')
+  }
+
+  // 取得群組對應的 action 字串
+  const getActionForGroup = (type, format) => {
+    const actions = availableActions[type] || []
+    const action = actions.find(a => a.id === format)
+    return action?.action || null
+  }
+
+  // 執行單一群組轉換
+  const handleStartGroup = async (type) => {
+    const group = taskQueue[type]
+    if (!group || group.files.length === 0) return
+
+    const action = getActionForGroup(type, group.outputFormat)
+    if (!action) {
+      toast.error(t('conversionFailed'), 'Invalid action')
       return
     }
-    setIsProcessing(true)
-    setProgress(0)
+
+    // 更新狀態為處理中
+    setTaskQueue(prev => ({
+      ...prev,
+      [type]: { ...prev[type], status: 'processing', progress: 0, errors: [] }
+    }))
     setStatus(t('executing'))
-    
+
     try {
       const payload = {
         action,
-        files: files.map(f => f.path),
+        files: group.files.map(f => f.path),
         output_dir: outputConfig.mode === 'custom' ? outputConfig.path : null
       }
+      
       const r = await window.api.doAction(payload)
+      
       if (r && r.ok && r.data) {
-        setProgress(100)
-        
         const { ok: successCount, fail: failCount, errors } = r.data
         
         if (failCount === 0 && successCount > 0) {
-          // 全部成功
-          toast.success(
-            t('conversionComplete'),
-            `${successCount} ${t('filesConverted')}`
-          )
-          setStatus(t('ready'))
-          setFiles([])
+          // 全部成功 - 清除該群組
+          setTaskQueue(prev => ({
+            ...prev,
+            [type]: { ...createInitialTaskQueue()[type], status: 'completed' }
+          }))
+          toast.success(t('conversionComplete'), `${successCount} ${t('filesConverted')}`)
         } else if (successCount > 0 && failCount > 0) {
           // 部分成功
-          const errorMsg = errors?.[0]?.error || ''
-          toast.warning(
-            t('partialSuccess'),
-            `${successCount} ${t('success')}, ${failCount} ${t('fail')}${errorMsg ? `: ${errorMsg}` : ''}`
-          )
-          setStatus(t('ready'))
-          setFiles([])
+          setTaskQueue(prev => ({
+            ...prev,
+            [type]: { ...prev[type], status: 'completed', errors: errors || [] }
+          }))
+          toast.warning(t('partialSuccess'), `${successCount} ${t('success')}, ${failCount} ${t('fail')}`)
         } else {
           // 全部失敗
-          const errorMsg = errors?.[0]?.error || t('execFail')
-          toast.error(t('conversionFailed'), errorMsg)
-          setStatus(t('ready'))
-        }
-        
-        if (errors?.length > 0) {
-          console.error('Conversion errors:', errors)
+          setTaskQueue(prev => ({
+            ...prev,
+            [type]: { ...prev[type], status: 'error', errors: errors || [] }
+          }))
+          toast.error(t('conversionFailed'), errors?.[0]?.error || t('execFail'))
         }
       } else {
-        // API 錯誤
-        const errorMsg = r?.error || t('execFail')
-        toast.error(t('conversionFailed'), errorMsg)
-        setStatus(t('ready'))
-        console.error('Action failed:', r)
+        setTaskQueue(prev => ({
+          ...prev,
+          [type]: { ...prev[type], status: 'error', errors: [{ error: r?.error || t('execFail') }] }
+        }))
+        toast.error(t('conversionFailed'), r?.error || t('execFail'))
       }
     } catch (e) {
       console.error(e)
+      setTaskQueue(prev => ({
+        ...prev,
+        [type]: { ...prev[type], status: 'error', errors: [{ error: e.message }] }
+      }))
       toast.error(t('conversionFailed'), e.message)
-      setStatus(t('ready'))
     } finally {
-      setIsProcessing(false)
+      setStatus(t('ready'))
     }
   }
 
-  const removeFile = (index) => {
-    setFiles(prev => prev.filter((_, i) => i !== index))
+  // 執行所有啟用的群組
+  const handleStartAll = async () => {
+    const activeTypes = getActiveGroupTypes(taskQueue).filter(type => taskQueue[type].enabled)
+    
+    if (activeTypes.length === 0) {
+      toast.warning(t('selectActionFirst'))
+      return
+    }
+
+    setStatus(t('executing'))
+    let totalSuccess = 0
+    let totalFail = 0
+
+    for (const type of activeTypes) {
+      await handleStartGroup(type)
+      // 簡單統計（實際結果已在 handleStartGroup 中處理）
+      if (taskQueue[type].status === 'completed') totalSuccess++
+      else if (taskQueue[type].status === 'error') totalFail++
+    }
+
+    setStatus(t('ready'))
   }
 
-  const totalSize = files.reduce((acc, f) => acc + (f.size || 0), 0)
+  // 計算統計資料
+  const totalFileCount = getTotalFileCount(taskQueue)
+  const totalSize = getTotalFileSize(taskQueue)
+  const activeTypes = getActiveGroupTypes(taskQueue)
+  const processing = isAnyProcessing(taskQueue)
+  const canStartAll = hasEnabledGroups(taskQueue)
 
   // --- Components ---
 
@@ -475,12 +531,18 @@ function AppContent() {
             <FolderOpen className="mr-2 h-4 w-4" />
             {t('selectFiles')}
           </Button>
+          {totalFileCount > 0 && (
+            <Button variant="outline" onClick={handleClearAll} disabled={processing}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t('clearAll')}
+            </Button>
+          )}
           <Button 
-            onClick={handleStart}
-            disabled={!action || files.length === 0 || isProcessing}
+            onClick={handleStartAll}
+            disabled={!canStartAll || processing}
           >
             <Play className="mr-2 h-4 w-4" />
-            {t('start')}
+            {t('startAll')}
           </Button>
         </div>
       </div>
@@ -488,30 +550,20 @@ function AppContent() {
       <Card className="flex-1 flex flex-col overflow-hidden">
         <CardHeader className="pb-4">
           <CardDescription>
-            {action ? `${t('currentAction')}: ${tAction(action)}` : t('selectAction')}
+            {totalFileCount > 0 
+              ? `${totalFileCount} ${t('files')} (${bytesToSize(totalSize)})`
+              : t('selectAction')
+            }
           </CardDescription>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {suggestedActions.map(a => (
-              <Button
-                key={a}
-                variant={action === a ? "default" : "secondary"}
-                size="sm"
-                onClick={() => setAction(a)}
-                className="text-xs"
-              >
-                {tAction(a)}
-              </Button>
-            ))}
-          </div>
         </CardHeader>
         
         <CardContent className="flex-1 flex flex-col overflow-hidden gap-4 pb-4">
           <div 
-            className={`flex-1 border-2 border-dashed rounded-lg flex flex-col overflow-hidden transition-colors ${files.length === 0 ? 'items-center justify-center border-muted-foreground/25 bg-muted/50' : 'border-border bg-card'}`}
+            className={`flex-1 border-2 border-dashed rounded-lg flex flex-col overflow-hidden transition-colors ${activeTypes.length === 0 ? 'items-center justify-center border-muted-foreground/25 bg-muted/50' : 'border-border bg-card p-4'}`}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
           >
-            {files.length === 0 ? (
+            {activeTypes.length === 0 ? (
               <div className="text-center p-8">
                 <div className="rounded-full bg-background p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center shadow-sm">
                   <Upload className="h-8 w-8 text-muted-foreground" />
@@ -522,41 +574,28 @@ function AppContent() {
                 </p>
               </div>
             ) : (
-              <div className="flex flex-col h-full w-full">
-                <div className="grid grid-cols-[1fr_100px_80px] gap-4 p-3 border-b bg-muted/50 text-sm font-medium">
-                  <div>{t('fileName')}</div>
-                  <div className="text-right">{t('size')}</div>
-                  <div className="text-right">{t('action')}</div>
-                </div>
-                <div className="flex-1 overflow-auto">
-                  {files.map((f, i) => (
-                    <div key={i} className="grid grid-cols-[1fr_100px_80px] gap-4 p-3 border-b last:border-0 items-center hover:bg-muted/50 transition-colors text-sm group">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <FileIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="truncate" title={f.path}>{f.name}</span>
-                      </div>
-                      <div className="text-right font-mono text-xs text-muted-foreground">{bytesToSize(f.size || 0)}</div>
-                      <div className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeFile(i)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <div className="flex flex-col gap-4 overflow-auto">
+                {activeTypes.map(type => (
+                  <TaskGroup
+                    key={type}
+                    type={type}
+                    group={taskQueue[type]}
+                    onFormatChange={handleFormatChange}
+                    onStart={handleStartGroup}
+                    onToggle={handleToggleGroup}
+                    onRemoveFile={handleRemoveFile}
+                    t={t}
+                    tAction={tAction}
+                  />
+                ))}
               </div>
             )}
           </div>
           
           <div className="space-y-2">
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{status || (files.length > 0 ? t('ready') : t('waiting'))}</span>
-              <span>{files.length} {t('files')} ({bytesToSize(totalSize)})</span>
+              <span>{status || (totalFileCount > 0 ? t('ready') : t('waiting'))}</span>
+              <span>{totalFileCount} {t('files')} ({bytesToSize(totalSize)})</span>
             </div>
             <Progress value={progress} className="h-2" />
           </div>
