@@ -15,8 +15,8 @@ const versionDir = path.join(releaseDir, `v${version}`)
 
 // 需要複製的檔案類型
 const filesToCopy = [
-  `Uniconvert Setup ${version}.exe`,
-  `Uniconvert Setup ${version}.exe.blockmap`,
+  `Uniconvert.Setup.${version}.exe`,
+  `Uniconvert.Setup.${version}.exe.blockmap`,
   'latest.yml'
 ]
 
