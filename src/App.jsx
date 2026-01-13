@@ -85,6 +85,10 @@ const translations = {
     more: "More",
     clearAll: "Clear All",
     noFiles: "No files added",
+    openFolderAfterConversion: "Open folder after conversion",
+    version: "Version",
+    author: "Author",
+    copyright: "Copyright",
     actions: {
       '合併圖片為PDF': 'Merge Images to PDF',
       '批量轉PNG': 'Batch to PNG',
@@ -163,6 +167,10 @@ const translations = {
     more: "更多",
     clearAll: "清除全部",
     noFiles: "尚未加入檔案",
+    openFolderAfterConversion: "轉換後自動開啟資料夾",
+    version: "版本",
+    author: "作者",
+    copyright: "版權",
     actions: {
       '合併圖片為PDF': '合併圖片為PDF',
       '批量轉PNG': '批量轉PNG',
@@ -201,6 +209,9 @@ function AppContent() {
   // --- Settings State ---
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'system')
   const [language, setLanguage] = useState(() => localStorage.getItem('language') || 'system')
+  const [openFolderAfterConversion, setOpenFolderAfterConversion] = useState(() => {
+    return localStorage.getItem('openFolderAfterConversion') !== 'false'
+  })
   
   // Output: { mode: 'source' | 'custom', path: string }
   const [outputConfig, setOutputConfig] = useState(() => {
@@ -226,6 +237,10 @@ function AppContent() {
   useEffect(() => {
     localStorage.setItem('language', language)
   }, [language])
+
+  useEffect(() => {
+    localStorage.setItem('openFolderAfterConversion', openFolderAfterConversion)
+  }, [openFolderAfterConversion])
 
   useEffect(() => {
     localStorage.setItem('outputConfig', JSON.stringify(outputConfig))
@@ -373,6 +388,11 @@ function AppContent() {
     }))
     setStatus(t('executing'))
 
+    // 計算輸出目錄
+    const outputDir = outputConfig.mode === 'custom' 
+      ? outputConfig.path 
+      : (group.files[0]?.path ? group.files[0].path.replace(/[\\/][^\\/]+$/, '') : null)
+
     try {
       const payload = {
         action,
@@ -392,6 +412,11 @@ function AppContent() {
             [type]: { ...createInitialTaskQueue()[type], status: 'completed' }
           }))
           toast.success(t('conversionComplete'), `${successCount} ${t('filesConverted')}`)
+          
+          // 自動打開資料夾
+          if (openFolderAfterConversion && outputDir && window.api?.openFolder) {
+            await window.api.openFolder(outputDir)
+          }
         } else if (successCount > 0 && failCount > 0) {
           // 部分成功
           setTaskQueue(prev => ({
@@ -399,6 +424,11 @@ function AppContent() {
             [type]: { ...prev[type], status: 'completed', errors: errors || [] }
           }))
           toast.warning(t('partialSuccess'), `${successCount} ${t('success')}, ${failCount} ${t('fail')}`)
+          
+          // 部分成功也打開資料夾
+          if (openFolderAfterConversion && outputDir && window.api?.openFolder) {
+            await window.api.openFolder(outputDir)
+          }
         } else {
           // 全部失敗
           setTaskQueue(prev => ({
@@ -504,9 +534,11 @@ function AppContent() {
         <div className="space-y-6">
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">{t('appName')}</h2>
-            <p className="text-sm text-muted-foreground">
-              beta
-            </p>
+            <div className="text-sm text-muted-foreground space-y-1">
+              <p>{t('version')}: 1.0.0</p>
+              <p>{t('author')}: 0png</p>
+              <p>{t('copyright')}: © 2025 0png. All rights reserved.</p>
+            </div>
           </div>
           <div className="space-y-4">
             <h3 className="text-base font-medium">{t('supportedFormats')}</h3>
@@ -708,6 +740,23 @@ function AppContent() {
                 </Button>
               </div>
             )}
+          </div>
+
+          {/* Open Folder After Conversion */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <Label className="text-base">{t('openFolderAfterConversion')}</Label>
+            <button
+              onClick={() => setOpenFolderAfterConversion(!openFolderAfterConversion)}
+              className={`w-12 h-6 rounded-full transition-colors relative ${
+                openFolderAfterConversion ? 'bg-primary' : 'bg-muted'
+              }`}
+            >
+              <span 
+                className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+                  openFolderAfterConversion ? 'translate-x-7' : 'translate-x-1'
+                }`}
+              />
+            </button>
           </div>
 
         </div>

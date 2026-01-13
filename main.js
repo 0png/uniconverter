@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, Menu } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog, Menu, shell } = require('electron')
 const path = require('path')
 const { processAction } = require('./converters')
 let win
@@ -36,6 +36,14 @@ ipcMain.handle('select-files', async () => {
 ipcMain.handle('select-dir', async () => {
   const r = await dialog.showOpenDialog(win, { properties: ['openDirectory'] })
   return r.canceled ? null : r.filePaths[0]
+})
+ipcMain.handle('open-folder', async (e, folderPath) => {
+  try {
+    await shell.openPath(folderPath)
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
 })
 ipcMain.handle('do-action', async (e, payload) => {
   try {
