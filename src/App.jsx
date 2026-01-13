@@ -20,12 +20,7 @@ import {
   hasEnabledGroups,
   availableActions
 } from "@/lib/taskQueue"
-
-const bytesToSize = (n) => {
-  if (n < 1024) return `${n} B`
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(2)} KB`
-  return `${(n / (1024 * 1024)).toFixed(2)} MB`
-}
+import { bytesToSize } from "@/lib/utils"
 
 const translations = {
   en: {
