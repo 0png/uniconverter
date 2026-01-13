@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Trash2, File as FileIcon, Play, ChevronDown, ChevronUp, Check, Image, Video, Music, FileText } from "lucide-react"
 import { getGroupActions } from "@/lib/taskQueue"
+import { bytesToSize } from "@/lib/utils"
 
 // SVG 類型圖示映射
 const TypeIcon = ({ type, className }) => {
@@ -16,12 +17,6 @@ const TypeIcon = ({ type, className }) => {
   }
   const Icon = icons[type]
   return Icon ? <Icon className={className} /> : null
-}
-
-const bytesToSize = (n) => {
-  if (n < 1024) return `${n} B`
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(2)} KB`
-  return `${(n / (1024 * 1024)).toFixed(2)} MB`
 }
 
 /**
@@ -144,7 +139,7 @@ export function TaskGroup({
   tAction
 }) {
   const [expanded, setExpanded] = useState(true)
-  const actions = getGroupActions(type, group.files.length)
+  const actions = getGroupActions(type, group.files.length, group.files)
   const isProcessing = group.status === 'processing'
   const isCompleted = group.status === 'completed'
   const hasError = group.status === 'error'
