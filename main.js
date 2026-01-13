@@ -89,6 +89,31 @@ ipcMain.handle('do-action', async (e, payload) => {
     // 5 秒後恢復閒置狀態
     setTimeout(() => updatePresence('idle'), 5000)
     
+    // 記錄歷史（每個成功轉換的檔案）
+    if (data.ok > 0 && payload.files?.length > 0) {
+      const fileType = getFileTypeFromAction(payload.action)
+      const outputDir = payload.output_dir || path.dirname(payload.files[0])
+      
+      // 為每個檔案建立歷史記錄
+      for (const filePath of payload.files) {
+        const fileName = path.basename(filePath)
+        const outputExt = getOutputExtFromAction(payload.action)
+        const outputFile = path.join(outputDir, fileName.replace(/\.[^.]+$/, `.${outputExt}`))
+        
+        try {
+          await historyManager.addEntry({
+            sourceFile: filePath,
+            outputFile: outputFile,
+            conversionType: payload.action,
+            fileType: fileType,
+            status: 'success'
+          })
+        } catch (historyErr) {
+          console.error('[do-action] Failed to add history entry:', historyErr)
+        }
+      }
+    }
+    
     return { ok: true, data }
   } catch (err) {
     console.error('[do-action] Error:', err)
@@ -97,6 +122,52 @@ ipcMain.handle('do-action', async (e, payload) => {
     return { ok: false, error: String(err && err.message ? err.message : err), stack: err?.stack }
   }
 })
+
+/**
+ * 根據 action 判斷檔案類型
+ */
+function getFileTypeFromAction(action) {
+  if (action.includes('PNG') || action.includes('JPG') || action.includes('WEBP') || 
+      action.includes('ICO') || action.includes('BMP') || action.includes('GIF') || 
+      action.includes('TIFF') || action === '合併圖片為PDF') {
+    return 'image'
+  }
+  if (action.includes('MP4') || action.includes('MOV') || action === '批量轉/提取MP3') {
+    return 'video'
+  }
+  if (action.includes('MP3') || action.includes('WAV') || action.includes('M4A')) {
+    // 區分音訊轉換和影片提取音訊
+    if (action === '批量轉/提取MP3') return 'video'
+    return 'audio'
+  }
+  if (action.includes('PDF每頁')) {
+    return 'document'
+  }
+  if (action.includes('Markdown')) {
+    return 'markdown'
+  }
+  return 'image'
+}
+
+/**
+ * 根據 action 取得輸出副檔名
+ */
+function getOutputExtFromAction(action) {
+  if (action.includes('PNG') || action === 'PDF每頁轉PNG') return 'png'
+  if (action.includes('JPG') || action === 'PDF每頁轉JPG') return 'jpg'
+  if (action.includes('WEBP')) return 'webp'
+  if (action.includes('ICO')) return 'ico'
+  if (action.includes('BMP')) return 'bmp'
+  if (action.includes('GIF')) return 'gif'
+  if (action.includes('TIFF')) return 'tiff'
+  if (action.includes('MP4')) return 'mp4'
+  if (action.includes('MOV')) return 'mov'
+  if (action.includes('MP3')) return 'mp3'
+  if (action.includes('WAV')) return 'wav'
+  if (action.includes('M4A')) return 'm4a'
+  if (action === '合併圖片為PDF' || action.includes('Markdown')) return 'pdf'
+  return 'out'
+}
 
 // Discord RPC IPC handlers
 ipcMain.handle('discord:set-enabled', async (e, enabled) => {
