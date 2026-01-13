@@ -8,7 +8,8 @@ import { Select } from "@/components/ui/select"
 import { ToastProvider, useToast } from "@/components/ui/toast"
 import { TaskGroup } from "@/components/TaskGroup"
 import { UpdateNotification, CheckUpdateButton } from "@/components/UpdateNotification"
-import { FolderOpen, Play, Upload, Settings, Home, Sun, Moon, Monitor, Info, Trash2 } from "lucide-react"
+import { HistoryView } from "@/components/HistoryView"
+import { FolderOpen, Play, Upload, Settings, Home, Sun, Moon, Monitor, Info, Trash2, History } from "lucide-react"
 import {
   createInitialTaskQueue,
   groupFilesToQueue,
@@ -104,6 +105,18 @@ const translations = {
     viewOnGitHub: "View on GitHub",
     submitFeedback: "Submit Feedback",
     builtWith: "Built with",
+    // History 相關翻譯
+    history: "History",
+    filterAll: "All",
+    records: "records",
+    noHistory: "No History",
+    noHistoryDesc: "Your conversion history will appear here",
+    openLocation: "Open Location",
+    reconvert: "Re-convert",
+    delete: "Delete",
+    refresh: "Refresh",
+    confirm: "Confirm",
+    cancel: "Cancel",
     actions: {
       '合併圖片為PDF': 'Merge Images to PDF',
       '批量轉PNG': 'Batch to PNG',
@@ -201,6 +214,18 @@ const translations = {
     viewOnGitHub: "在 GitHub 上查看",
     submitFeedback: "提交意見回饋",
     builtWith: "使用技術",
+    // History 相關翻譯
+    history: "歷史記錄",
+    filterAll: "全部",
+    records: "筆記錄",
+    noHistory: "沒有歷史記錄",
+    noHistoryDesc: "您的轉換歷史記錄將顯示在這裡",
+    openLocation: "開啟位置",
+    reconvert: "重新轉換",
+    delete: "刪除",
+    refresh: "重新整理",
+    confirm: "確認",
+    cancel: "取消",
     actions: {
       '合併圖片為PDF': '合併圖片為PDF',
       '批量轉PNG': '批量轉PNG',
@@ -554,6 +579,14 @@ function AppContent() {
       >
         <Home className="mr-2 h-4 w-4" />
         {t('workspace')}
+      </Button>
+      <Button 
+        variant={currentView === 'history' ? 'secondary' : 'ghost'} 
+        className="justify-start" 
+        onClick={() => setCurrentView('history')}
+      >
+        <History className="mr-2 h-4 w-4" />
+        {t('history')}
       </Button>
       <Button 
         variant={currentView === 'settings' ? 'secondary' : 'ghost'} 
@@ -1062,6 +1095,18 @@ function AppContent() {
       <Sidebar />
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {currentView === 'home' && <HomeView />}
+        {currentView === 'history' && (
+          <HistoryView 
+            t={t} 
+            tAction={tAction} 
+            language={language}
+            onReconvert={(entry) => {
+              // 重新轉換：加入檔案到任務佇列並切換到首頁
+              addFiles([{ path: entry.sourceFile, name: entry.sourceFile.split(/[\\/]/).pop(), size: 0 }])
+              setCurrentView('home')
+            }}
+          />
+        )}
         {currentView === 'settings' && <SettingsView />}
         {currentView === 'about' && <AboutView />}
       </div>
