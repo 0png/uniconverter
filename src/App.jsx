@@ -357,7 +357,12 @@ function AppContent() {
         addFiles(newFiles)
         
         // 顯示通知
-        toast.success(t('filesAdded'), `${files.length} ${t('files')}`)
+        const lang = language === 'system' 
+          ? (navigator.language.startsWith('zh') ? 'zh-TW' : 'en')
+          : language
+        const filesAddedText = translations[lang]?.filesAdded || translations['en'].filesAdded
+        const filesText = translations[lang]?.files || translations['en'].files
+        toast.success(filesAddedText, `${files.length} ${filesText}`)
         
         // 切換到首頁
         setCurrentView('home')
@@ -365,7 +370,7 @@ function AppContent() {
     })
     
     return unsubscribe
-  }, [t])
+  }, [language])
 
   useEffect(() => {
     localStorage.setItem('outputConfig', JSON.stringify(outputConfig))
