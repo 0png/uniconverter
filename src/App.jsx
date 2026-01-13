@@ -436,16 +436,18 @@ function AppContent() {
     }
 
     setStatus(t('executing'))
-    let totalSuccess = 0
-    let totalFail = 0
+    setProgress(0)
+    
+    let completedCount = 0
+    const totalGroups = activeTypes.length
 
     for (const type of activeTypes) {
       await handleStartGroup(type)
-      // 簡單統計（實際結果已在 handleStartGroup 中處理）
-      if (taskQueue[type].status === 'completed') totalSuccess++
-      else if (taskQueue[type].status === 'error') totalFail++
+      completedCount++
+      setProgress(Math.round((completedCount / totalGroups) * 100))
     }
 
+    setProgress(100)
     setStatus(t('ready'))
   }
 
