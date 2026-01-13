@@ -38,12 +38,12 @@ export const availableActions = {
   ]
 }
 
-// 類型圖示
-export const typeIcons = {
-  image: '🖼️',
-  video: '🎬',
-  audio: '🎵',
-  document: '📄'
+// 類型圖示 (使用 lucide-react 圖示名稱)
+export const typeIconNames = {
+  image: 'Image',
+  video: 'Video',
+  audio: 'Music',
+  document: 'FileText'
 }
 
 // 建立空的任務群組

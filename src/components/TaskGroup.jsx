@@ -3,8 +3,20 @@ import { createPortal } from 'react-dom'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Trash2, File as FileIcon, Play, ChevronDown, ChevronUp, Check } from "lucide-react"
-import { typeIcons, getGroupActions } from "@/lib/taskQueue"
+import { Trash2, File as FileIcon, Play, ChevronDown, ChevronUp, Check, Image, Video, Music, FileText } from "lucide-react"
+import { getGroupActions } from "@/lib/taskQueue"
+
+// SVG 類型圖示映射
+const TypeIcon = ({ type, className }) => {
+  const icons = {
+    image: Image,
+    video: Video,
+    audio: Music,
+    document: FileText
+  }
+  const Icon = icons[type]
+  return Icon ? <Icon className={className} /> : null
+}
 
 const bytesToSize = (n) => {
   if (n < 1024) return `${n} B`
@@ -172,7 +184,7 @@ export function TaskGroup({
             </button>
             
             {/* 類型圖示和標籤 */}
-            <span className="text-lg">{typeIcons[type]}</span>
+            <TypeIcon type={type} className="h-5 w-5 text-muted-foreground" />
             <span className="font-medium">{typeLabels[type]}</span>
             <span className="text-sm text-muted-foreground">({group.files.length})</span>
             
