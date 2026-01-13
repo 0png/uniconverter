@@ -11,7 +11,9 @@
     "release": "npm run build && electron-builder --win --publish never && node scripts/organize-release.js",
     "release:build": "npm run build && electron-builder --win --publish never",
     "release:publish": "npm run build && electron-builder --win --publish always",
-    "release:organize": "node scripts/organize-release.js"
+    "release:organize": "node scripts/organize-release.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "0png",
@@ -42,10 +44,12 @@
     "autoprefixer": "^10.4.23",
     "electron": "^31.0.0",
     "electron-builder": "^24.13.3",
+    "fast-check": "^4.5.3",
     "png-to-ico": "^2.1.7",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
-    "vite": "^6.4.1"
+    "vite": "^6.4.1",
+    "vitest": "^4.0.17"
   },
   "repository": {
     "type": "git",
