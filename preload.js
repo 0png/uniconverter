@@ -38,5 +38,19 @@ contextBridge.exposeInMainWorld('api', {
     clear: () => ipcRenderer.invoke('history:clear'),
     getCounts: () => ipcRenderer.invoke('history:get-counts'),
     openLocation: (filePath) => ipcRenderer.invoke('history:open-location', filePath)
+  },
+  
+  // Context Menu API
+  contextMenu: {
+    register: () => ipcRenderer.invoke('context-menu:register'),
+    unregister: () => ipcRenderer.invoke('context-menu:unregister'),
+    isRegistered: () => ipcRenderer.invoke('context-menu:is-registered')
+  },
+  
+  // Files from command line arguments
+  onFilesFromArgs: (callback) => {
+    const handler = (event, files) => callback(files)
+    ipcRenderer.on('files-from-args', handler)
+    return () => ipcRenderer.removeListener('files-from-args', handler)
   }
 })

@@ -4,8 +4,37 @@ const { processAction } = require('./converters')
 const { initAutoUpdater } = require('./updater')
 const { initDiscordRPC, updatePresence, destroyDiscordRPC, setDiscordRPCEnabled, getDiscordRPCStatus } = require('./discord-rpc')
 const historyManager = require('./lib/historyManager')
+const contextMenuManager = require('./lib/contextMenuManager')
+const { parseFileArguments } = require('./lib/fileArgParser')
 
 let win
+let pendingFiles = [] // 儲存待處理的檔案（從命令列或第二實例傳入）
+
+// 單一實例鎖定
+const gotTheLock = app.requestSingleInstanceLock()
+
+if (!gotTheLock) {
+  // 如果無法取得鎖定，表示已有另一個實例在運行
+  // 退出此實例（檔案參數會透過 second-instance 事件傳遞給第一個實例）
+  app.quit()
+} else {
+  // 監聽第二實例啟動事件
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    console.log('[SingleInstance] Second instance detected, commandLine:', commandLine)
+    
+    // 解析檔案參數
+    const { files } = parseFileArguments(commandLine)
+    
+    if (files.length > 0 && win) {
+      // 將檔案發送到前端
+      win.webContents.send('files-from-args', files)
+      
+      // 將視窗帶到前景
+      if (win.isMinimized()) win.restore()
+      win.focus()
+    }
+  })
+}
 
 function createWindow() {
   win = new BrowserWindow({
@@ -32,6 +61,16 @@ function createWindow() {
   
   // 初始化 Discord RPC
   initDiscordRPC()
+  
+  // 視窗載入完成後，發送待處理的檔案
+  win.webContents.on('did-finish-load', () => {
+    // 解析啟動時的命令列參數
+    const { files } = parseFileArguments(process.argv)
+    if (files.length > 0) {
+      console.log('[Main] Sending files from startup args:', files.length)
+      win.webContents.send('files-from-args', files)
+    }
+  })
 }
 app.whenReady().then(() => {
   createWindow()
@@ -226,6 +265,35 @@ ipcMain.handle('history:open-location', async (e, filePath) => {
   try {
     await shell.showItemInFolder(filePath)
     return { ok: true }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
+
+
+// Context Menu IPC handlers
+ipcMain.handle('context-menu:register', async () => {
+  try {
+    const result = await contextMenuManager.register()
+    return result
+  } catch (err) {
+    return { success: false, error: err.message }
+  }
+})
+
+ipcMain.handle('context-menu:unregister', async () => {
+  try {
+    const result = await contextMenuManager.unregister()
+    return result
+  } catch (err) {
+    return { success: false, error: err.message }
+  }
+})
+
+ipcMain.handle('context-menu:is-registered', async () => {
+  try {
+    const registered = await contextMenuManager.isRegistered()
+    return { ok: true, registered }
   } catch (err) {
     return { ok: false, error: err.message }
   }

@@ -92,6 +92,11 @@ const translations = {
     openFolderAfterConversion: "Open folder after conversion",
     discordRPC: "Discord Rich Presence",
     discordRPCDesc: "Show current activity status on Discord",
+    contextMenu: "Windows Context Menu",
+    contextMenuDesc: "Add 'Open with Uniconvert' to right-click menu",
+    contextMenuRegistering: "Registering...",
+    contextMenuUnregistering: "Removing...",
+    filesAdded: "files added",
     version: "Version",
     author: "Author",
     copyright: "Copyright",
@@ -201,6 +206,11 @@ const translations = {
     openFolderAfterConversion: "轉換後自動開啟資料夾",
     discordRPC: "Discord Rich Presence",
     discordRPCDesc: "在 Discord 顯示目前活動狀態",
+    contextMenu: "Windows 右鍵選單",
+    contextMenuDesc: "在右鍵選單加入「以 Uniconvert 開啟」",
+    contextMenuRegistering: "註冊中...",
+    contextMenuUnregistering: "移除中...",
+    filesAdded: "個檔案已加入",
     version: "版本",
     author: "作者",
     copyright: "版權",
@@ -271,6 +281,8 @@ function AppContent() {
   const [discordRPCEnabled, setDiscordRPCEnabled] = useState(() => {
     return localStorage.getItem('discordRPCEnabled') === 'true'
   })
+  const [contextMenuEnabled, setContextMenuEnabled] = useState(false)
+  const [contextMenuLoading, setContextMenuLoading] = useState(false)
   
   // Output: { mode: 'source' | 'custom', path: string }
   const [outputConfig, setOutputConfig] = useState(() => {
@@ -315,6 +327,45 @@ function AppContent() {
       window.api.discord.setEnabled(true)
     }
   }, [])
+
+  // 初始化時檢查右鍵選單狀態
+  useEffect(() => {
+    const checkContextMenu = async () => {
+      if (window.api?.contextMenu?.isRegistered) {
+        const result = await window.api.contextMenu.isRegistered()
+        if (result.ok) {
+          setContextMenuEnabled(result.registered)
+        }
+      }
+    }
+    checkContextMenu()
+  }, [])
+
+  // 監聽從命令列傳入的檔案
+  useEffect(() => {
+    if (!window.api?.onFilesFromArgs) return
+    
+    const unsubscribe = window.api.onFilesFromArgs((files) => {
+      console.log('[App] Received files from args:', files)
+      if (files && files.length > 0) {
+        // 將檔案加入任務佇列
+        const newFiles = files.map(f => ({
+          path: f.path,
+          name: f.name,
+          size: 0
+        }))
+        addFiles(newFiles)
+        
+        // 顯示通知
+        toast.success(t('filesAdded'), `${files.length} ${t('files')}`)
+        
+        // 切換到首頁
+        setCurrentView('home')
+      }
+    })
+    
+    return unsubscribe
+  }, [t])
 
   useEffect(() => {
     localStorage.setItem('outputConfig', JSON.stringify(outputConfig))
@@ -385,6 +436,34 @@ function AppContent() {
     const dir = await window.api.selectDir()
     if (dir) {
       setOutputConfig(prev => ({ ...prev, path: dir, mode: 'custom' }))
+    }
+  }
+
+  // 切換右鍵選單
+  const handleToggleContextMenu = async () => {
+    if (!window.api?.contextMenu || contextMenuLoading) return
+    
+    setContextMenuLoading(true)
+    try {
+      if (contextMenuEnabled) {
+        const result = await window.api.contextMenu.unregister()
+        if (result.success) {
+          setContextMenuEnabled(false)
+        } else {
+          toast.error(t('error'), result.error || 'Failed to unregister')
+        }
+      } else {
+        const result = await window.api.contextMenu.register()
+        if (result.success) {
+          setContextMenuEnabled(true)
+        } else {
+          toast.error(t('error'), result.error || 'Failed to register')
+        }
+      }
+    } catch (err) {
+      toast.error(t('error'), err.message)
+    } finally {
+      setContextMenuLoading(false)
     }
   }
 
@@ -1078,6 +1157,37 @@ function AppContent() {
               `}
             >
               {discordRPCEnabled && (
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
+            </button>
+          </div>
+
+          {/* Windows Context Menu */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <Label className="text-base">{t('contextMenu')}</Label>
+              <span className="text-xs text-muted-foreground">{t('contextMenuDesc')}</span>
+            </div>
+            <button
+              onClick={handleToggleContextMenu}
+              disabled={contextMenuLoading}
+              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors
+                ${contextMenuLoading 
+                  ? 'border-muted-foreground/30 bg-muted cursor-not-allowed'
+                  : contextMenuEnabled 
+                    ? 'bg-primary border-primary text-primary-foreground' 
+                    : 'border-muted-foreground/50 hover:border-muted-foreground bg-transparent'
+                }
+              `}
+            >
+              {contextMenuLoading ? (
+                <svg className="h-3 w-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                  <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
+                </svg>
+              ) : contextMenuEnabled && (
                 <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
