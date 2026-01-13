@@ -726,7 +726,7 @@ function AppContent() {
                 <div className="grid grid-cols-2 gap-4 pt-2">
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">{t('version')}</p>
-                    <p className="text-sm font-medium">1.1.3</p>
+                    <p className="text-sm font-medium">1.2.0</p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">{t('author')}</p>
