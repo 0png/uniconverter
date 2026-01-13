@@ -1,11 +1,11 @@
-const { contextBridge, ipcRenderer, shell } = require('electron')
+const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('api', {
   selectFiles: () => ipcRenderer.invoke('select-files'),
   selectDir: () => ipcRenderer.invoke('select-dir'),
   doAction: (payload) => ipcRenderer.invoke('do-action', payload),
   openFolder: (folderPath) => ipcRenderer.invoke('open-folder', folderPath),
-  openExternal: (url) => shell.openExternal(url),
+  openExternal: (url) => ipcRenderer.invoke('open-external', url),
   
   // 自動更新 API
   update: {

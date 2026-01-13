@@ -53,6 +53,14 @@ ipcMain.handle('open-folder', async (e, folderPath) => {
     return { ok: false, error: err.message }
   }
 })
+ipcMain.handle('open-external', async (e, url) => {
+  try {
+    await shell.openExternal(url)
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: err.message }
+  }
+})
 ipcMain.handle('do-action', async (e, payload) => {
   try {
     console.log('[do-action] Starting:', payload.action, 'Files:', payload.files?.length || 0)
