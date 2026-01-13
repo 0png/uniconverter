@@ -89,4 +89,56 @@
   body {
     @apply bg-background text-foreground font-sans antialiased m-0 overflow-hidden select-none;
   }
+
+  /* 美觀簡約滾動條樣式 */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  ::-webkit-scrollbar-thumb:active {
+    background: hsl(var(--muted-foreground) / 0.7);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Firefox 滾動條樣式 */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
+  }
+
+  /* 深色模式下的滾動條 */
+  :root.dark ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.25);
+  }
+
+  :root.dark ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+
+  :root.dark ::-webkit-scrollbar-thumb:active {
+    background: hsl(var(--muted-foreground) / 0.55);
+  }
+
+  :root.dark * {
+    scrollbar-color: hsl(var(--muted-foreground) / 0.25) transparent;
+  }
 }
