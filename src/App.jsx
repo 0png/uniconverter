@@ -87,6 +87,8 @@ const translations = {
     clearAll: "Clear All",
     noFiles: "No files added",
     openFolderAfterConversion: "Open folder after conversion",
+    discordRPC: "Discord Rich Presence",
+    discordRPCDesc: "Show current activity status on Discord",
     version: "Version",
     author: "Author",
     copyright: "Copyright",
@@ -179,6 +181,8 @@ const translations = {
     clearAll: "清除全部",
     noFiles: "尚未加入檔案",
     openFolderAfterConversion: "轉換後自動開啟資料夾",
+    discordRPC: "Discord Rich Presence",
+    discordRPCDesc: "在 Discord 顯示目前活動狀態",
     version: "版本",
     author: "作者",
     copyright: "版權",
@@ -233,6 +237,9 @@ function AppContent() {
   const [openFolderAfterConversion, setOpenFolderAfterConversion] = useState(() => {
     return localStorage.getItem('openFolderAfterConversion') !== 'false'
   })
+  const [discordRPCEnabled, setDiscordRPCEnabled] = useState(() => {
+    return localStorage.getItem('discordRPCEnabled') === 'true'
+  })
   
   // Output: { mode: 'source' | 'custom', path: string }
   const [outputConfig, setOutputConfig] = useState(() => {
@@ -262,6 +269,21 @@ function AppContent() {
   useEffect(() => {
     localStorage.setItem('openFolderAfterConversion', openFolderAfterConversion)
   }, [openFolderAfterConversion])
+
+  useEffect(() => {
+    localStorage.setItem('discordRPCEnabled', discordRPCEnabled)
+    // 同步到後端
+    if (window.api?.discord?.setEnabled) {
+      window.api.discord.setEnabled(discordRPCEnabled)
+    }
+  }, [discordRPCEnabled])
+
+  // 初始化時同步 Discord RPC 狀態
+  useEffect(() => {
+    if (window.api?.discord?.setEnabled && discordRPCEnabled) {
+      window.api.discord.setEnabled(true)
+    }
+  }, [])
 
   useEffect(() => {
     localStorage.setItem('outputConfig', JSON.stringify(outputConfig))
@@ -871,6 +893,29 @@ function AppContent() {
               `}
             >
               {openFolderAfterConversion && (
+                <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              )}
+            </button>
+          </div>
+
+          {/* Discord Rich Presence */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <Label className="text-base">{t('discordRPC')}</Label>
+              <span className="text-xs text-muted-foreground">{t('discordRPCDesc')}</span>
+            </div>
+            <button
+              onClick={() => setDiscordRPCEnabled(!discordRPCEnabled)}
+              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors
+                ${discordRPCEnabled 
+                  ? 'bg-primary border-primary text-primary-foreground' 
+                  : 'border-muted-foreground/50 hover:border-muted-foreground bg-transparent'
+                }
+              `}
+            >
+              {discordRPCEnabled && (
                 <svg className="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>

@@ -22,5 +22,11 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.on('update:progress', handler)
       return () => ipcRenderer.removeListener('update:progress', handler)
     }
+  },
+  
+  // Discord RPC API
+  discord: {
+    setEnabled: (enabled) => ipcRenderer.invoke('discord:set-enabled', enabled),
+    getStatus: () => ipcRenderer.invoke('discord:get-status')
   }
 })
