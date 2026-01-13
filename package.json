@@ -21,6 +21,7 @@
     "clsx": "^2.1.1",
     "ffmpeg-static": "^5.2.0",
     "fluent-ffmpeg": "^2.1.2",
+    "heic-convert": "^2.1.0",
     "lucide-react": "^0.562.0",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^5.4.530",
@@ -34,12 +35,12 @@
     "@tailwindcss/postcss": "^4.1.18",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.23",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.18",
-    "vite": "^6.4.1",
     "electron": "^31.0.0",
     "electron-builder": "^24.13.3",
-    "png-to-ico": "^2.1.7"
+    "png-to-ico": "^2.1.7",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "vite": "^6.4.1"
   },
   "build": {
     "appId": "com.uniconvert.app",

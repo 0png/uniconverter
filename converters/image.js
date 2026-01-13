@@ -5,6 +5,7 @@ const { checkDependency, fileExists, ensureDir, getUniqueFilename, createResult,
 // 依賴檢查
 const sharpDep = checkDependency('sharp')
 const pdfLibDep = checkDependency('pdf-lib')
+const heicConvertDep = checkDependency('heic-convert')
 
 let pdfjsLib = null
 let Canvas = null
@@ -18,6 +19,38 @@ try {
 
 const sharp = sharpDep.available ? sharpDep.module : null
 const PDFDocument = pdfLibDep.available ? pdfLibDep.module.PDFDocument : null
+const heicConvert = heicConvertDep.available ? heicConvertDep.module : null
+
+/**
+ * 檢查是否為 HEIC/HEIF 格式
+ * @param {string} filePath - 檔案路徑
+ * @returns {boolean}
+ */
+function isHeicFile(filePath) {
+  const ext = path.extname(filePath).toLowerCase()
+  return ext === '.heic' || ext === '.heif'
+}
+
+/**
+ * 將 HEIC 檔案轉換為 Buffer
+ * @param {string} filePath - HEIC 檔案路徑
+ * @param {'JPEG' | 'PNG'} format - 目標格式
+ * @returns {Promise<Buffer>}
+ */
+async function convertHeicToBuffer(filePath, format) {
+  if (!heicConvert) {
+    throw new Error('heic-convert is not available. Please install it with: npm install heic-convert')
+  }
+  
+  const inputBuffer = fs.readFileSync(filePath)
+  const outputBuffer = await heicConvert({
+    buffer: inputBuffer,
+    format: format,
+    quality: 0.9
+  })
+  
+  return Buffer.from(outputBuffer)
+}
 
 /**
  * 批量轉換圖片格式
@@ -50,6 +83,22 @@ async function batchConvert(files, format, outputDir) {
       const base = path.basename(f, path.extname(f))
       const out = getUniqueFilename(outDir, base, format)
       
+      // 處理 HEIC/HEIF 格式
+      if (isHeicFile(f)) {
+        if (!heicConvert) {
+          errors.push({ file: f, error: 'heic-convert is not available for HEIC files' })
+          fail++
+          continue
+        }
+        
+        const heicFormat = format === 'png' ? 'PNG' : 'JPEG'
+        const buffer = await convertHeicToBuffer(f, heicFormat)
+        fs.writeFileSync(out, buffer)
+        ok++
+        continue
+      }
+      
+      // 處理其他格式
       const img = sharp(f)
       if (format === 'jpg' || format === 'jpeg') {
         await img.jpeg({ quality: 90 }).toFile(out)
@@ -98,19 +147,29 @@ async function mergeImagesToPDF(files, outputFile) {
 
         const ext = path.extname(f).toLowerCase()
         let buffer = null
+        let isPng = ext === '.png'
         
         if (ext === '.png' || ext === '.jpg' || ext === '.jpeg') {
           buffer = fs.readFileSync(f)
+        } else if (isHeicFile(f)) {
+          // 處理 HEIC/HEIF 格式
+          if (!heicConvert) {
+            errors.push({ file: f, error: 'heic-convert is not available for HEIC files' })
+            continue
+          }
+          buffer = await convertHeicToBuffer(f, 'JPEG')
+          isPng = false
         } else if (sharp) {
           // 轉換其他格式為 JPEG
           buffer = await sharp(f).jpeg({ quality: 90 }).toBuffer()
+          isPng = false
         } else {
           errors.push({ file: f, error: 'Unsupported format and sharp is not available' })
           continue
         }
         
         let img
-        if (ext === '.png') {
+        if (isPng) {
           img = await pdfDoc.embedPng(buffer)
         } else {
           img = await pdfDoc.embedJpg(buffer)
