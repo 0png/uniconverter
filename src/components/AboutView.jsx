@@ -3,6 +3,7 @@
  * @module AboutView
  */
 
+import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { CheckUpdateButton } from "@/components/UpdateNotification"
@@ -87,6 +88,14 @@ function FormatCard({ title, iconColor, icon, inputFormats, outputFormats }) {
  * @param {string} props.language - 當前語言
  */
 export function AboutView({ t, language }) {
+  const [version, setVersion] = useState('--')
+  
+  useEffect(() => {
+    if (window.api?.getVersion) {
+      window.api.getVersion().then(v => setVersion(v))
+    }
+  }, [])
+
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden p-6 gap-6">
       <div className="flex justify-between items-center">
@@ -113,7 +122,7 @@ export function AboutView({ t, language }) {
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">{t('version')}</p>
-                  <p className="text-sm font-medium">1.2.1</p>
+                  <p className="text-sm font-medium">{version}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">{t('author')}</p>

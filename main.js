@@ -87,6 +87,11 @@ app.on('window-all-closed', () => {
   destroyDiscordRPC()
   if (process.platform !== 'darwin') app.quit()
 })
+// App Info IPC handler
+ipcMain.handle('app:get-version', () => {
+  return app.getVersion()
+})
+
 ipcMain.handle('select-files', async () => {
   const r = await dialog.showOpenDialog(win, { properties: ['openFile', 'multiSelections'] })
   return r.canceled ? [] : r.filePaths
