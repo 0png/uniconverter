@@ -261,11 +261,16 @@ async function pdfEachPageToImage(files, format, outputDir) {
       const data = new Uint8Array(fs.readFileSync(f))
       
       console.log('[pdfEachPageToImage] Loading PDF document...')
+      // 路徑需要使用 file:// URL 格式並加上結尾斜線
+      const cmapUrl = 'file:///' + path.join(__dirname, '../node_modules/pdfjs-dist/cmaps/').replace(/\\/g, '/') 
+      const fontUrl = 'file:///' + path.join(__dirname, '../node_modules/pdfjs-dist/standard_fonts/').replace(/\\/g, '/')
+      console.log('[pdfEachPageToImage] cMapUrl:', cmapUrl)
+      
       const loadingTask = pdfjsLib.getDocument({
         data,
-        cMapUrl: path.join(__dirname, '../node_modules/pdfjs-dist/cmaps/'),
+        cMapUrl: cmapUrl,
         cMapPacked: true,
-        standardFontDataUrl: path.join(__dirname, '../node_modules/pdfjs-dist/standard_fonts/'),
+        standardFontDataUrl: fontUrl,
         useSystemFonts: true
       })
       
