@@ -1,5 +1,10 @@
 const { app, BrowserWindow, ipcMain, dialog, Menu, shell } = require('electron')
 const path = require('path')
+
+// 在載入其他模組之前，先處理命令列參數
+// 這可以防止 Electron 嘗試將檔案路徑當作模組載入
+const launchArgs = process.argv.slice()
+
 const { processAction } = require('./converters')
 const { initAutoUpdater } = require('./updater')
 const { initDiscordRPC, updatePresence, destroyDiscordRPC, setDiscordRPCEnabled, getDiscordRPCStatus } = require('./discord-rpc')
@@ -64,8 +69,8 @@ function createWindow() {
   
   // 視窗載入完成後，發送待處理的檔案
   win.webContents.on('did-finish-load', () => {
-    // 解析啟動時的命令列參數
-    const { files } = parseFileArguments(process.argv)
+    // 解析啟動時的命令列參數（使用保存的 launchArgs）
+    const { files } = parseFileArguments(launchArgs)
     if (files.length > 0) {
       console.log('[Main] Sending files from startup args:', files.length)
       win.webContents.send('files-from-args', files)
