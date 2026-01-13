@@ -7,8 +7,7 @@ export const defaultFormats = {
   image: 'png',
   video: 'mp4',
   audio: 'mp3',
-  document: 'png',
-  markdown: 'pdf'
+  document: 'png'
 }
 
 // 可用操作配置
@@ -34,11 +33,9 @@ export const availableActions = {
     { id: 'm4a', action: '批量轉M4A' }
   ],
   document: [
-    { id: 'png', action: 'PDF每頁轉PNG', recommended: true },
-    { id: 'jpg', action: 'PDF每頁轉JPG' }
-  ],
-  markdown: [
-    { id: 'pdf', action: 'Markdown轉PDF', recommended: true }
+    { id: 'png', action: 'PDF每頁轉PNG', recommended: true, forExt: ['pdf'] },
+    { id: 'jpg', action: 'PDF每頁轉JPG', forExt: ['pdf'] },
+    { id: 'md-pdf', action: 'Markdown轉PDF', forExt: ['md', 'markdown'] }
   ]
 }
 
@@ -47,8 +44,7 @@ export const typeIconNames = {
   image: 'Image',
   video: 'Video',
   audio: 'Music',
-  document: 'FileText',
-  markdown: 'FileCode'
+  document: 'FileText'
 }
 
 // 建立空的任務群組
@@ -69,8 +65,7 @@ export function createInitialTaskQueue() {
     image: createEmptyGroup('image'),
     video: createEmptyGroup('video'),
     audio: createEmptyGroup('audio'),
-    document: createEmptyGroup('document'),
-    markdown: createEmptyGroup('markdown')
+    document: createEmptyGroup('document')
   }
 }
 
@@ -78,8 +73,7 @@ export function createInitialTaskQueue() {
 export function detectFileType(filePath) {
   const ext = (filePath.split('.').pop() || '').toLowerCase()
   if (['png', 'jpg', 'jpeg', 'heic', 'heif', 'webp', 'bmp', 'gif', 'tiff', 'tif', 'ico', 'avif', 'svg'].includes(ext)) return 'image'
-  if (['pdf'].includes(ext)) return 'document'
-  if (['md', 'markdown'].includes(ext)) return 'markdown'
+  if (['pdf', 'md', 'markdown'].includes(ext)) return 'document'
   if (['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv', 'wmv'].includes(ext)) return 'video'
   if (['mp3', 'wav', 'm4a', 'flac', 'ogg', 'aac', 'wma'].includes(ext)) return 'audio'
   return 'unknown'
@@ -126,10 +120,31 @@ export function getActiveGroupTypes(queue) {
 }
 
 // 取得群組的可用操作
-export function getGroupActions(type, fileCount) {
+export function getGroupActions(type, fileCount, files = []) {
   const actions = availableActions[type] || []
+  
+  // 取得群組中所有檔案的副檔名
+  const extensions = files.map(f => (f.path?.split('.').pop() || f.name?.split('.').pop() || '').toLowerCase())
+  const hasMarkdown = extensions.some(ext => ['md', 'markdown'].includes(ext))
+  const hasPdf = extensions.some(ext => ext === 'pdf')
+  
   return actions.filter(a => {
     if (a.requireMultiple && fileCount < 2) return false
+    
+    // 如果操作有指定適用的副檔名，檢查是否符合
+    if (a.forExt) {
+      // 對於 document 類型，根據檔案類型過濾操作
+      if (type === 'document') {
+        const actionForMarkdown = a.forExt.some(ext => ['md', 'markdown'].includes(ext))
+        const actionForPdf = a.forExt.includes('pdf')
+        
+        // 如果操作是給 markdown 的，只有當有 markdown 檔案時才顯示
+        if (actionForMarkdown && !hasMarkdown) return false
+        // 如果操作是給 pdf 的，只有當有 pdf 檔案時才顯示
+        if (actionForPdf && !hasPdf) return false
+      }
+    }
+    
     return true
   })
 }

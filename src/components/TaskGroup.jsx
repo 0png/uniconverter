@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { Trash2, File as FileIcon, Play, ChevronDown, ChevronUp, Check, Image, Video, Music, FileText, FileCode } from "lucide-react"
+import { Trash2, File as FileIcon, Play, ChevronDown, ChevronUp, Check, Image, Video, Music, FileText } from "lucide-react"
 import { getGroupActions } from "@/lib/taskQueue"
 import { bytesToSize } from "@/lib/utils"
 
@@ -13,8 +13,7 @@ const TypeIcon = ({ type, className }) => {
     image: Image,
     video: Video,
     audio: Music,
-    document: FileText,
-    markdown: FileCode
+    document: FileText
   }
   const Icon = icons[type]
   return Icon ? <Icon className={className} /> : null
@@ -140,7 +139,7 @@ export function TaskGroup({
   tAction
 }) {
   const [expanded, setExpanded] = useState(true)
-  const actions = getGroupActions(type, group.files.length)
+  const actions = getGroupActions(type, group.files.length, group.files)
   const isProcessing = group.status === 'processing'
   const isCompleted = group.status === 'completed'
   const hasError = group.status === 'error'
@@ -149,8 +148,7 @@ export function TaskGroup({
     image: t('typeImage'),
     video: t('typeVideo'),
     audio: t('typeAudio'),
-    document: t('typeDocument'),
-    markdown: t('typeMarkdown')
+    document: t('typeDocument')
   }
   
   const statusColors = {

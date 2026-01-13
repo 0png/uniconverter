@@ -31,15 +31,14 @@ import {
 // --- Arbitraries ---
 
 // 檔案類型
-const fileTypeArb = fc.constantFrom('image', 'video', 'audio', 'document', 'markdown')
+const fileTypeArb = fc.constantFrom('image', 'video', 'audio', 'document')
 
 // 檔案副檔名對應
 const extensionsByType = {
   image: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif'],
   video: ['mp4', 'mov', 'avi', 'mkv'],
   audio: ['mp3', 'wav', 'm4a'],
-  document: ['pdf'],
-  markdown: ['md', 'markdown']
+  document: ['pdf', 'md', 'markdown']
 }
 
 // 產生特定類型的檔案路徑
@@ -529,7 +528,6 @@ describe('useTaskQueue - Unit Tests', () => {
       expect(queue).toHaveProperty('video')
       expect(queue).toHaveProperty('audio')
       expect(queue).toHaveProperty('document')
-      expect(queue).toHaveProperty('markdown')
     })
 
     it('should create empty file arrays for all types', () => {
@@ -574,8 +572,8 @@ describe('useTaskQueue - Unit Tests', () => {
     })
 
     it('should detect markdown files correctly', () => {
-      expect(detectFileType('test.md')).toBe('markdown')
-      expect(detectFileType('test.markdown')).toBe('markdown')
+      expect(detectFileType('test.md')).toBe('document')
+      expect(detectFileType('test.markdown')).toBe('document')
     })
 
     it('should return unknown for unsupported extensions', () => {

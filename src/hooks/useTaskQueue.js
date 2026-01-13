@@ -95,6 +95,10 @@ export function useTaskQueue(options) {
   const getActionForGroup = (type, format) => {
     const actions = availableActions[type] || []
     const action = actions.find(a => a.id === format)
+    // md-pdf 格式對應到 Markdown轉PDF action
+    if (format === 'md-pdf') {
+      return 'Markdown轉PDF'
+    }
     return action?.action || null
   }
 
