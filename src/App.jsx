@@ -348,11 +348,11 @@ function AppContent() {
     const unsubscribe = window.api.onFilesFromArgs((files) => {
       console.log('[App] Received files from args:', files)
       if (files && files.length > 0) {
-        // 將檔案加入任務佇列
+        // 將檔案加入任務佇列（使用後端傳來的 size）
         const newFiles = files.map(f => ({
           path: f.path,
           name: f.name,
-          size: 0
+          size: f.size || 0
         }))
         addFiles(newFiles)
         
