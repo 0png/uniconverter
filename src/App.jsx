@@ -537,7 +537,7 @@ function AppContent() {
             <div className="text-sm text-muted-foreground space-y-1">
               <p>{t('version')}: 1.0.0</p>
               <p>{t('author')}: 0png</p>
-              <p>{t('copyright')}: © 2025 0png. All rights reserved.</p>
+              <p>{t('copyright')}: © 2026 0png. All rights reserved.</p>
             </div>
           </div>
           <div className="space-y-4">
