@@ -750,6 +750,32 @@ function AppContent() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Markdown */}
+                  <div className="p-4 rounded-lg bg-muted/50 border border-border/50">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                        <svg className="w-4 h-4 text-orange-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                          <polyline points="14 2 14 8 20 8"/>
+                          <path d="M10 12l-2 2 2 2"/>
+                          <path d="M14 12l2 2-2 2"/>
+                        </svg>
+                      </div>
+                      <span className="font-medium text-sm">{t('typeMarkdown')}</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-1">
+                        <span className="px-1.5 py-0.5 text-[10px] rounded bg-background border text-muted-foreground">MD</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        <span className="px-1.5 py-0.5 text-[10px] rounded bg-primary/10 border border-primary/20 text-primary">PDF</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>
