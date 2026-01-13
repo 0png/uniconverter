@@ -11,9 +11,9 @@
     "release": "npm run build && electron-builder --win --publish never"
   },
   "keywords": [],
-  "author": "",
+  "author": "0png",
   "license": "MIT",
-  "description": "",
+  "description": "A universal file converter for images, videos, audio and documents",
   "dependencies": {
     "@radix-ui/react-progress": "^1.1.8",
     "@radix-ui/react-slot": "^1.2.4",
@@ -46,24 +46,53 @@
   "build": {
     "appId": "com.uniconvert.app",
     "productName": "Uniconvert",
+    "copyright": "Copyright © 2025 0png",
+    "asar": true,
+    "compression": "maximum",
     "files": [
       "web_dist/**/*",
       "main.js",
       "preload.js",
       "converters/**/*",
-      "src/**/*",
-      "index.html",
       "icon.png",
-      "node_modules/**/*",
-      "package.json"
+      "package.json",
+      "!node_modules/**/*.md",
+      "!node_modules/**/*.txt",
+      "!node_modules/**/*.map",
+      "!node_modules/**/test/**",
+      "!node_modules/**/tests/**",
+      "!node_modules/**/__tests__/**",
+      "!node_modules/**/docs/**",
+      "!node_modules/**/example/**",
+      "!node_modules/**/examples/**"
+    ],
+    "asarUnpack": [
+      "node_modules/sharp/**/*",
+      "node_modules/ffmpeg-static/**/*",
+      "node_modules/pdf-to-png-converter/**/*"
     ],
     "directories": {
       "buildResources": "build",
       "output": "release"
     },
     "win": {
-      "target": "nsis",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
+      ],
       "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerHeaderIcon": "build/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Uniconvert"
     }
   }
 }
