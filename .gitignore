@@ -58,3 +58,8 @@ Thumbs.db
 *.tmp
 *.bak
 .kiro/
+
+# -------------------------------
+# Release Notes (generated)
+# -------------------------------
+RELEASE_TEMPLATE.md

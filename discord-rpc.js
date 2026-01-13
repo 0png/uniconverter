@@ -1,7 +1,7 @@
 const DiscordRPC = require('discord-rpc')
 
 // Discord Application ID - 你需要在 Discord Developer Portal 建立應用程式並取得 Client ID
-const CLIENT_ID = '1328295000000000000' // 請替換為你的 Discord Application Client ID
+const CLIENT_ID = '1460557310652059760' // 請替換為你的 Discord Application Client ID
 
 let rpc = null
 let startTimestamp = null
