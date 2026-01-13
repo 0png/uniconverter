@@ -70,6 +70,7 @@ const translations = {
     conversionFailed: "Conversion Failed",
     partialSuccess: "Partial Success",
     someFilesFailed: "Some files failed to convert",
+    conversion_success: "Conversion successful",
     actions: {
       '合併圖片為PDF': 'Merge Images to PDF',
       '批量轉PNG': 'Batch to PNG',
