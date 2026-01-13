@@ -90,6 +90,16 @@ const translations = {
     version: "Version",
     author: "Author",
     copyright: "Copyright",
+    license: "License",
+    sourceCode: "Source Code",
+    reportIssue: "Report Issue",
+    website: "Website",
+    techStack: "Technology Stack",
+    description: "A universal file converter for images, videos, audio and documents.",
+    openSource: "Open Source",
+    viewOnGitHub: "View on GitHub",
+    submitFeedback: "Submit Feedback",
+    builtWith: "Built with",
     actions: {
       '合併圖片為PDF': 'Merge Images to PDF',
       '批量轉PNG': 'Batch to PNG',
@@ -172,6 +182,16 @@ const translations = {
     version: "版本",
     author: "作者",
     copyright: "版權",
+    license: "授權",
+    sourceCode: "原始碼",
+    reportIssue: "回報問題",
+    website: "網站",
+    techStack: "技術棧",
+    description: "一款通用檔案轉換器，支援圖片、影片、音訊與文件轉換。",
+    openSource: "開放原始碼",
+    viewOnGitHub: "在 GitHub 上查看",
+    submitFeedback: "提交意見回饋",
+    builtWith: "使用技術",
     actions: {
       '合併圖片為PDF': '合併圖片為PDF',
       '批量轉PNG': '批量轉PNG',
@@ -526,52 +546,139 @@ function AppContent() {
     </div>
   )
 
-  const AboutView = () => (
-    <div className="flex-1 flex flex-col h-full overflow-hidden p-6 gap-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold tracking-tight">{t('about')}</h1>
-      </div>
-      <Card className="p-6">
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-lg font-semibold">{t('appName')}</h2>
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p>{t('version')}: 1.1.1</p>
-              <p>{t('author')}: 0png</p>
-              <p>{t('copyright')}: © 2026 0png. All rights reserved.</p>
-            </div>
-          </div>
-          
-          {/* 檢查更新按鈕 */}
-          <div className="pt-2">
-            <CheckUpdateButton language={language} />
-          </div>
-          
-          <div className="space-y-4">
-            <h3 className="text-base font-medium">{t('supportedFormats')}</h3>
-            <ul className="space-y-3 text-sm text-muted-foreground">
-              <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                <span>{t('formats_images')}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                <span>{t('formats_documents')}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                <span>{t('formats_video')}</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
-                <span>{t('formats_audio')}</span>
-              </li>
-            </ul>
+  const AboutView = () => {
+    const openExternal = (url) => {
+      if (window.api?.openExternal) {
+        window.api.openExternal(url)
+      } else {
+        window.open(url, '_blank')
+      }
+    }
+
+    return (
+      <div className="flex-1 flex flex-col h-full overflow-hidden p-6 gap-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold tracking-tight">{t('about')}</h1>
+        </div>
+        
+        <div className="flex-1 overflow-auto">
+          <div className="grid gap-6 max-w-3xl">
+            {/* 應用程式資訊 */}
+            <Card className="p-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <span className="text-3xl font-bold text-primary">U</span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold">{t('appName')}</h2>
+                    <p className="text-sm text-muted-foreground">{t('description')}</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">{t('version')}</p>
+                    <p className="text-sm font-medium">1.1.1</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">{t('author')}</p>
+                    <p className="text-sm font-medium">0png</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">{t('license')}</p>
+                    <p className="text-sm font-medium">MIT</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">{t('copyright')}</p>
+                    <p className="text-sm font-medium">© 2025 0png</p>
+                  </div>
+                </div>
+                
+                {/* 檢查更新按鈕 */}
+                <div className="pt-2">
+                  <CheckUpdateButton language={language} />
+                </div>
+              </div>
+            </Card>
+
+            {/* 支援格式 */}
+            <Card className="p-6">
+              <div className="space-y-4">
+                <h3 className="text-base font-medium">{t('supportedFormats')}</h3>
+                <ul className="space-y-3 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                    <span>{t('formats_images')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                    <span>{t('formats_documents')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                    <span>{t('formats_video')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 shrink-0" />
+                    <span>{t('formats_audio')}</span>
+                  </li>
+                </ul>
+              </div>
+            </Card>
+
+            {/* 技術棧 */}
+            <Card className="p-6">
+              <div className="space-y-4">
+                <h3 className="text-base font-medium">{t('techStack')}</h3>
+                <div className="flex flex-wrap gap-2">
+                  {['Electron', 'React', 'Vite', 'Tailwind CSS', 'Sharp', 'FFmpeg'].map(tech => (
+                    <span 
+                      key={tech}
+                      className="px-3 py-1 text-xs font-medium rounded-full bg-muted text-muted-foreground"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </Card>
+
+            {/* 連結 */}
+            <Card className="p-6">
+              <div className="space-y-4">
+                <h3 className="text-base font-medium">{t('openSource')}</h3>
+                <div className="flex flex-wrap gap-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => openExternal('https://github.com/0png/uniconverter')}
+                  >
+                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    {t('viewOnGitHub')}
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => openExternal('https://github.com/0png/uniconverter/issues')}
+                  >
+                    <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="12" y1="8" x2="12" y2="12"/>
+                      <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    {t('submitFeedback')}
+                  </Button>
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
-      </Card>
-    </div>
-  )
+      </div>
+    )
+  }
 
   const HomeView = () => (
     <div className="flex-1 flex flex-col h-full overflow-hidden p-6 gap-6">

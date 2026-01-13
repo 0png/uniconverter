@@ -1,94 +1,66 @@
-# Uniconvert v1.0.0
+# Uniconvert v1.1.1
 
 ## Release Notes | 發布說明
 
-### English
+---
 
-#### What's New
+### New Features | 新功能
 
-🎉 **First Official Release!**
+| English | 繁體中文 |
+|---------|----------|
+| Automatic Update System | 自動更新系統 |
+| The application now supports automatic updates via GitHub Releases. Users will receive notifications when new versions are available and can download and install updates directly within the app. | 應用程式現已支援透過 GitHub Releases 進行自動更新。當有新版本可用時，使用者將收到通知，並可直接在應用程式內下載及安裝更新。 |
 
-Uniconvert is a universal file converter that makes it easy to convert images, videos, audio, and documents.
+| English | 繁體中文 |
+|---------|----------|
+| Manual Update Check | 手動檢查更新 |
+| Added a "Check for Updates" button in the About section, allowing users to manually check for available updates at any time. | 在「關於」頁面新增「檢查更新」按鈕，使用者可隨時手動檢查是否有可用更新。 |
 
-#### Features
-
-- **Smart Task Queue**: Automatically groups files by type for efficient batch processing
-- **Image Conversion**: Support for PNG, JPG, WEBP, ICO, BMP, GIF, TIFF, and HEIC/HEIF
-- **PDF Tools**: Merge images to PDF, split PDF pages to images
-- **Video Conversion**: Convert to MP4, MOV, or extract audio to MP3
-- **Audio Conversion**: Convert between MP3, WAV, and M4A formats
-- **Multi-language**: English and Traditional Chinese support
-- **Theme Support**: Light, Dark, and System themes
-- **Auto-open Folder**: Automatically open output folder after conversion
-
-#### Downloads
-
-| File | Description |
-|------|-------------|
-| `Uniconvert Setup 1.0.0.exe` | Windows Installer (Recommended) |
-| `win-unpacked.zip` | Portable Version (No installation required) |
-
-#### System Requirements
-
-- Windows 10/11 (64-bit)
-- No additional software required
-
-#### Installation
-
-1. Download `Uniconvert Setup 1.0.0.exe`
-2. Run the installer
-3. Follow the installation wizard
-4. Launch from Start Menu or Desktop shortcut
+| English | 繁體中文 |
+|---------|----------|
+| Update Progress Display | 更新進度顯示 |
+| Real-time download progress is displayed during the update process, providing users with clear visibility of the download status. | 更新過程中即時顯示下載進度，讓使用者清楚掌握下載狀態。 |
 
 ---
 
-### 繁體中文
+### Improvements | 改進
 
-#### 更新內容
-
-🎉 **首次正式發布！**
-
-Uniconvert 是一款通用檔案轉換器，讓您輕鬆轉換圖片、影片、音訊和文件。
-
-#### 功能特色
-
-- **智能任務佇列**: 自動依檔案類型分組，高效批量處理
-- **圖片轉換**: 支援 PNG、JPG、WEBP、ICO、BMP、GIF、TIFF 和 HEIC/HEIF
-- **PDF 工具**: 合併圖片為 PDF、拆分 PDF 頁面為圖片
-- **影片轉換**: 轉換為 MP4、MOV，或提取音訊為 MP3
-- **音訊轉換**: MP3、WAV、M4A 格式互轉
-- **多語言支援**: 英文和繁體中文
-- **主題支援**: 淺色、深色和系統主題
-- **自動開啟資料夾**: 轉換完成後自動開啟輸出資料夾
-
-#### 下載
-
-| 檔案 | 說明 |
-|------|------|
-| `Uniconvert Setup 1.0.0.exe` | Windows 安裝版（推薦）|
-| `win-unpacked.zip` | 免安裝版（無需安裝）|
-
-#### 系統需求
-
-- Windows 10/11（64 位元）
-- 無需額外安裝軟體
-
-#### 安裝方式
-
-1. 下載 `Uniconvert Setup 1.0.0.exe`
-2. 執行安裝程式
-3. 依照安裝精靈指示完成安裝
-4. 從開始選單或桌面捷徑啟動
+| English | 繁體中文 |
+|---------|----------|
+| Bilingual Update Notifications | 雙語更新通知 |
+| Update notifications now support both English and Traditional Chinese, automatically matching the system language preference. | 更新通知現已支援英文及繁體中文，自動配合系統語言偏好設定。 |
 
 ---
 
-## Checksums
+### Downloads | 下載
 
-```
-SHA256: [To be generated after build]
-```
+| File | Description | 檔案 | 說明 |
+|------|-------------|------|------|
+| `Uniconvert Setup 1.1.1.exe` | Windows Installer (Recommended) | `Uniconvert Setup 1.1.1.exe` | Windows 安裝版（推薦）|
 
-## Feedback
+---
+
+### System Requirements | 系統需求
+
+| English | 繁體中文 |
+|---------|----------|
+| Windows 10/11 (64-bit) | Windows 10/11（64 位元）|
+| No additional software required | 無需額外安裝軟體 |
+
+---
+
+### Installation | 安裝方式
+
+| Step | English | 繁體中文 |
+|------|---------|----------|
+| 1 | Download `Uniconvert Setup 1.1.1.exe` | 下載 `Uniconvert Setup 1.1.1.exe` |
+| 2 | Run the installer | 執行安裝程式 |
+| 3 | Follow the installation wizard | 依照安裝精靈指示完成安裝 |
+| 4 | Launch from Start Menu or Desktop shortcut | 從開始選單或桌面捷徑啟動 |
+
+---
+
+### Feedback | 意見回饋
 
 If you encounter any issues or have suggestions, please [open an issue](https://github.com/0png/uniconverter/issues).
 
@@ -96,4 +68,4 @@ If you encounter any issues or have suggestions, please [open an issue](https://
 
 ---
 
-**Full Changelog**: https://github.com/0png/uniconverter/commits/v1.0.0
+**Full Changelog**: https://github.com/0png/uniconverter/commits/v1.1.1
