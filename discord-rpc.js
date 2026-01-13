@@ -61,7 +61,13 @@ async function updatePresence(state, details = null) {
     startTimestamp,
     largeImageKey: 'uniconvert_logo', // 需要在 Discord Developer Portal 上傳圖片
     largeImageText: 'Uniconvert',
-    instance: false
+    instance: false,
+    buttons: [
+      {
+        label: 'View on GitHub',
+        url: 'https://github.com/0png/uniconverter'
+      }
+    ]
   }
 
   switch (state) {
