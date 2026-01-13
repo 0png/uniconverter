@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -16,10 +17,41 @@ const bytesToSize = (n) => {
  */
 function ActionBar({ actions, selectedFormat, onSelect, t, tAction, disabled }) {
   const [showMore, setShowMore] = useState(false)
+  const buttonRef = useRef(null)
+  const dropdownRef = useRef(null)
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 })
   
   // 分割為主要操作（前3個）和更多操作
   const primaryActions = actions.slice(0, 3)
   const moreActions = actions.slice(3)
+  
+  // 計算下拉選單位置
+  useEffect(() => {
+    if (showMore && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect()
+      setDropdownPos({
+        top: rect.bottom + 4,
+        left: rect.left
+      })
+    }
+  }, [showMore])
+  
+  // 點擊外部關閉選單
+  useEffect(() => {
+    if (!showMore) return
+    
+    const handleClickOutside = (e) => {
+      if (
+        buttonRef.current && !buttonRef.current.contains(e.target) &&
+        dropdownRef.current && !dropdownRef.current.contains(e.target)
+      ) {
+        setShowMore(false)
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showMore])
   
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -42,8 +74,9 @@ function ActionBar({ actions, selectedFormat, onSelect, t, tAction, disabled }) 
       ))}
       
       {moreActions.length > 0 && (
-        <div className="relative">
+        <>
           <Button
+            ref={buttonRef}
             variant="outline"
             size="sm"
             onClick={() => setShowMore(!showMore)}
@@ -54,8 +87,12 @@ function ActionBar({ actions, selectedFormat, onSelect, t, tAction, disabled }) 
             {showMore ? <ChevronUp className="ml-1 h-3 w-3" /> : <ChevronDown className="ml-1 h-3 w-3" />}
           </Button>
           
-          {showMore && (
-            <div className="absolute top-full left-0 mt-1 z-10 bg-popover border rounded-md shadow-lg min-w-[120px]">
+          {showMore && createPortal(
+            <div 
+              ref={dropdownRef}
+              className="fixed z-50 bg-popover border rounded-md shadow-lg min-w-[140px]"
+              style={{ top: dropdownPos.top, left: dropdownPos.left }}
+            >
               {moreActions.map(action => (
                 <button
                   key={action.id}
@@ -72,9 +109,10 @@ function ActionBar({ actions, selectedFormat, onSelect, t, tAction, disabled }) 
                   </span>
                 </button>
               ))}
-            </div>
+            </div>,
+            document.body
           )}
-        </div>
+        </>
       )}
     </div>
   )
