@@ -15,6 +15,11 @@ export const availableActions = {
   image: [
     { id: 'png', action: '批量轉PNG', recommended: true },
     { id: 'jpg', action: '批量轉JPG' },
+    { id: 'webp', action: '批量轉WEBP' },
+    { id: 'ico', action: '批量轉ICO' },
+    { id: 'bmp', action: '批量轉BMP' },
+    { id: 'gif', action: '批量轉GIF' },
+    { id: 'tiff', action: '批量轉TIFF' },
     { id: 'pdf', action: '合併圖片為PDF', requireMultiple: true }
   ],
   video: [
@@ -66,7 +71,7 @@ export function createInitialTaskQueue() {
 // 偵測檔案類型
 export function detectFileType(filePath) {
   const ext = (filePath.split('.').pop() || '').toLowerCase()
-  if (['png', 'jpg', 'jpeg', 'heic', 'heif', 'webp', 'bmp', 'gif', 'tiff', 'tif'].includes(ext)) return 'image'
+  if (['png', 'jpg', 'jpeg', 'heic', 'heif', 'webp', 'bmp', 'gif', 'tiff', 'tif', 'ico', 'avif', 'svg'].includes(ext)) return 'image'
   if (['pdf'].includes(ext)) return 'document'
   if (['mp4', 'mov', 'avi', 'mkv', 'webm', 'flv', 'wmv'].includes(ext)) return 'video'
   if (['mp3', 'wav', 'm4a', 'flac', 'ogg', 'aac', 'wma'].includes(ext)) return 'audio'

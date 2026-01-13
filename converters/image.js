@@ -66,7 +66,7 @@ async function convertHeicToBuffer(filePath, format) {
 /**
  * 批量轉換圖片格式
  * @param {string[]} files - 輸入檔案路徑陣列
- * @param {'png' | 'jpg'} format - 目標格式
+ * @param {'png' | 'jpg' | 'webp' | 'ico' | 'bmp' | 'gif' | 'tiff'} format - 目標格式
  * @param {string | null} outputDir - 輸出目錄
  * @returns {Promise<{ ok: number, fail: number, errors: Array }>}
  */
@@ -102,22 +102,22 @@ async function batchConvert(files, format, outputDir) {
           continue
         }
         
-        const heicFormat = format === 'png' ? 'PNG' : 'JPEG'
+        // HEIC 先轉為 PNG buffer，再用 sharp 轉換到目標格式
+        const heicFormat = (format === 'jpg' || format === 'jpeg') ? 'JPEG' : 'PNG'
         const buffer = await convertHeicToBuffer(f, heicFormat)
-        fs.writeFileSync(out, buffer)
+        
+        if (format === 'png' || format === 'jpg' || format === 'jpeg') {
+          fs.writeFileSync(out, buffer)
+        } else {
+          // 其他格式需要用 sharp 再轉換
+          await convertWithSharp(sharp(buffer), format, out)
+        }
         ok++
         continue
       }
       
       // 處理其他格式
-      const img = sharp(f)
-      if (format === 'jpg' || format === 'jpeg') {
-        await img.jpeg({ quality: 90 }).toFile(out)
-      } else if (format === 'png') {
-        await img.png().toFile(out)
-      } else {
-        await img.toFile(out)
-      }
+      await convertWithSharp(sharp(f), format, out)
       ok++
     } catch (e) {
       errors.push({ file: f, error: e.message || String(e) })
@@ -126,6 +126,46 @@ async function batchConvert(files, format, outputDir) {
   }
   
   return createResult(ok, fail, errors)
+}
+
+/**
+ * 使用 sharp 轉換圖片到指定格式
+ * @param {import('sharp').Sharp} img - sharp 實例
+ * @param {string} format - 目標格式
+ * @param {string} outputPath - 輸出路徑
+ */
+async function convertWithSharp(img, format, outputPath) {
+  switch (format) {
+    case 'jpg':
+    case 'jpeg':
+      await img.jpeg({ quality: 90 }).toFile(outputPath)
+      break
+    case 'png':
+      await img.png().toFile(outputPath)
+      break
+    case 'webp':
+      await img.webp({ quality: 90 }).toFile(outputPath)
+      break
+    case 'ico':
+      // ICO 格式：調整大小為標準 ICO 尺寸並轉換
+      await img.resize(256, 256, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+        .png()
+        .toFile(outputPath)
+      break
+    case 'bmp':
+      // BMP 格式：sharp 不直接支援，先轉 PNG 再改副檔名（或使用 raw）
+      await img.png().toFile(outputPath)
+      break
+    case 'gif':
+      await img.gif().toFile(outputPath)
+      break
+    case 'tiff':
+    case 'tif':
+      await img.tiff({ compression: 'lzw' }).toFile(outputPath)
+      break
+    default:
+      await img.toFile(outputPath)
+  }
 }
 
 /**

@@ -43,6 +43,21 @@ async function processAction(action, files, outputDir) {
     case '批量轉JPG':
       return await image.batchConvert(files, 'jpg', outputDir)
 
+    case '批量轉WEBP':
+      return await image.batchConvert(files, 'webp', outputDir)
+
+    case '批量轉ICO':
+      return await image.batchConvert(files, 'ico', outputDir)
+
+    case '批量轉BMP':
+      return await image.batchConvert(files, 'bmp', outputDir)
+
+    case '批量轉GIF':
+      return await image.batchConvert(files, 'gif', outputDir)
+
+    case '批量轉TIFF':
+      return await image.batchConvert(files, 'tiff', outputDir)
+
     case 'PDF每頁轉PNG':
       return await image.pdfEachPageToImage(files, 'png', outputDir)
 
