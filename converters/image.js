@@ -7,40 +7,30 @@ const sharpDep = checkDependency('sharp')
 const pdfLibDep = checkDependency('pdf-lib')
 const heicConvertDep = checkDependency('heic-convert')
 
-let pdfjsLib = null
-let Canvas = null
-let pdfLoadError = null
-
-// 動態載入 pdfjs-dist (ESM 模組)
-async function loadPdfJs() {
-  if (pdfjsLib) return true
-  if (pdfLoadError) return false
-  
-  try {
-    console.log('[loadPdfJs] Loading pdfjs-dist...')
-    // 使用動態 import 載入 ESM 模組
-    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs')
-    pdfjsLib = pdfjs
-    console.log('[loadPdfJs] pdfjs-dist loaded successfully')
-    
-    // 載入 skia-canvas
-    console.log('[loadPdfJs] Loading skia-canvas...')
-    const skia = require('skia-canvas')
-    Canvas = skia.Canvas
-    console.log('[loadPdfJs] skia-canvas loaded successfully')
-    
-    return true
-  } catch (e) {
-    pdfLoadError = e.message + (e.stack ? '\n' + e.stack : '')
-    console.error('[loadPdfJs] Failed to load PDF libs:', e.message)
-    console.error('[loadPdfJs] Stack:', e.stack)
-    return false
-  }
-}
-
 const sharp = sharpDep.available ? sharpDep.module : null
 const PDFDocument = pdfLibDep.available ? pdfLibDep.module.PDFDocument : null
 const heicConvert = heicConvertDep.available ? heicConvertDep.module : null
+
+// pdf-to-png-converter 使用動態載入
+let pdfToPng = null
+let pdfToPngError = null
+
+async function loadPdfToPng() {
+  if (pdfToPng) return true
+  if (pdfToPngError) return false
+  
+  try {
+    console.log('[loadPdfToPng] Loading pdf-to-png-converter...')
+    const module = await import('pdf-to-png-converter')
+    pdfToPng = module.pdfToPng
+    console.log('[loadPdfToPng] Loaded successfully')
+    return true
+  } catch (e) {
+    pdfToPngError = e.message
+    console.error('[loadPdfToPng] Failed:', e.message)
+    return false
+  }
+}
 
 /**
  * 檢查是否為 HEIC/HEIF 格式
@@ -231,12 +221,12 @@ async function pdfEachPageToImage(files, format, outputDir) {
 
   console.log('[pdfEachPageToImage] Starting, files:', files.length, 'format:', format)
   
-  // 動態載入 pdfjs
-  const pdfLoaded = await loadPdfJs()
+  // 動態載入 pdf-to-png-converter
+  const loaded = await loadPdfToPng()
   
-  if (!pdfLoaded || !pdfjsLib || !Canvas) {
-    const errorMsg = pdfLoadError || 'pdfjs-dist or skia-canvas is not available'
-    console.error('[pdfEachPageToImage] PDF libs not available:', errorMsg)
+  if (!loaded || !pdfToPng) {
+    const errorMsg = pdfToPngError || 'pdf-to-png-converter is not available'
+    console.error('[pdfEachPageToImage] PDF converter not available:', errorMsg)
     return createResult(0, files.length, files.map(f => ({ 
       file: f, 
       error: errorMsg
@@ -258,45 +248,37 @@ async function pdfEachPageToImage(files, format, outputDir) {
       await ensureDir(outDir)
       
       const base = path.basename(f, path.extname(f))
-      const data = new Uint8Array(fs.readFileSync(f))
       
-      console.log('[pdfEachPageToImage] Loading PDF document...')
-      // 路徑需要使用 file:// URL 格式並加上結尾斜線
-      const cmapUrl = 'file:///' + path.join(__dirname, '../node_modules/pdfjs-dist/cmaps/').replace(/\\/g, '/') 
-      const fontUrl = 'file:///' + path.join(__dirname, '../node_modules/pdfjs-dist/standard_fonts/').replace(/\\/g, '/')
-      console.log('[pdfEachPageToImage] cMapUrl:', cmapUrl)
-      
-      const loadingTask = pdfjsLib.getDocument({
-        data,
-        cMapUrl: cmapUrl,
-        cMapPacked: true,
-        standardFontDataUrl: fontUrl,
-        useSystemFonts: true
+      console.log('[pdfEachPageToImage] Converting PDF to PNG...')
+      // 使用 pdf-to-png-converter 轉換
+      const pngPages = await pdfToPng(f, {
+        disableFontFace: false,
+        useSystemFonts: true,
+        viewportScale: 2.0 // ~144 DPI
       })
       
-      const doc = await loadingTask.promise
-      console.log('[pdfEachPageToImage] PDF loaded, pages:', doc.numPages)
+      console.log('[pdfEachPageToImage] Got', pngPages.length, 'pages')
       
-      for (let i = 1; i <= doc.numPages; i++) {
-        console.log('[pdfEachPageToImage] Rendering page', i)
-        const page = await doc.getPage(i)
-        const viewport = page.getViewport({ scale: 2.0 }) // ~144 DPI
+      for (let i = 0; i < pngPages.length; i++) {
+        const page = pngPages[i]
+        const pageNum = i + 1
+        const out = path.join(outDir, `${base}_${pageNum}.${format}`)
         
-        const canvas = new Canvas(viewport.width, viewport.height)
-        const context = canvas.getContext('2d')
-        
-        await page.render({
-          canvasContext: context,
-          viewport: viewport
-        }).promise
-        
-        const out = path.join(outDir, `${base}_${i}.${format}`)
-        console.log('[pdfEachPageToImage] Saving to:', out)
+        console.log('[pdfEachPageToImage] Saving page', pageNum, 'to:', out)
         
         if (format === 'jpg' || format === 'jpeg') {
-          await canvas.saveAs(out, { format: 'jpeg', quality: 90 })
+          // 使用 sharp 轉換為 JPG
+          if (sharp) {
+            await sharp(page.content).jpeg({ quality: 90 }).toFile(out)
+          } else {
+            // 如果沒有 sharp，先存為 PNG 再提示
+            const pngOut = path.join(outDir, `${base}_${pageNum}.png`)
+            fs.writeFileSync(pngOut, page.content)
+            errors.push({ file: f, error: `Page ${pageNum} saved as PNG (sharp not available for JPG conversion)` })
+          }
         } else {
-          await canvas.saveAs(out, { format: 'png' })
+          // PNG 格式直接儲存
+          fs.writeFileSync(out, page.content)
         }
       }
       

@@ -24,6 +24,7 @@
     "heic-convert": "^2.1.0",
     "lucide-react": "^0.562.0",
     "pdf-lib": "^1.17.1",
+    "pdf-to-png-converter": "^3.11.0",
     "pdfjs-dist": "^5.4.530",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
