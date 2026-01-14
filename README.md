@@ -74,18 +74,31 @@ Download the latest release from [Releases](https://github.com/0png/uniconverter
 
 ### Development
 
+This project uses a pnpm workspace monorepo structure:
+
+```
+packages/
+├── shared/        # Shared utilities (@uniconvert/shared)
+├── converters/    # File converters (@uniconvert/converters)
+├── renderer/      # React frontend (@uniconvert/renderer)
+└── electron-app/  # Electron main process (@uniconvert/electron-app)
+```
+
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
-# Development mode (frontend only)
-npm run dev
+# Development mode (Electron app)
+pnpm dev
 
-# Start Electron app
-npm run start
+# Build all packages
+pnpm build
 
-# Build for production
-npm run release
+# Run all tests
+pnpm test
+
+# Build for production release
+pnpm release:build
 ```
 
 ### License
@@ -154,18 +167,31 @@ Uniconvert 是一款跨平台的檔案轉換工具（Electron + React），支�
 
 ### 開發環境
 
+本專案使用 pnpm workspace monorepo 架構：
+
+```
+packages/
+├── shared/        # 共用工具 (@uniconvert/shared)
+├── converters/    # 檔案轉換器 (@uniconvert/converters)
+├── renderer/      # React 前端 (@uniconvert/renderer)
+└── electron-app/  # Electron 主程序 (@uniconvert/electron-app)
+```
+
 ```bash
 # 安裝依賴
-npm install
+pnpm install
 
-# 開發模式（僅前端）
-npm run dev
+# 開發模式（Electron 應用）
+pnpm dev
 
-# 啟動 Electron 應用
-npm run start
+# 建置所有套件
+pnpm build
 
-# 打包發布
-npm run release
+# 執行所有測試
+pnpm test
+
+# 打包發布版本
+pnpm release:build
 ```
 
 ### 授權條款

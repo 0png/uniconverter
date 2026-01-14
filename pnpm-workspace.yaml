@@ -2,7 +2,10 @@ packages:
   - packages/*
 
 onlyBuiltDependencies:
+  - electron
+  - electron-winstaller
   - esbuild
   - ffmpeg-static
   - puppeteer
+  - register-scheme
   - sharp

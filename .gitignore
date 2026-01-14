@@ -4,13 +4,14 @@
 node_modules/
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
+# Note: pnpm-lock.yaml is tracked for reproducible builds
 
 # -------------------------------
 # React / Tailwind build outputs
 # -------------------------------
 dist/
-build/
+# Note: build/ contains app icons, web_dist/ is renderer output
+web_dist/
 
 # -------------------------------
 # Electron
