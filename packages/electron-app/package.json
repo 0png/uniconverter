@@ -1,6 +1,6 @@
 {
   "name": "@uniconvert/electron-app",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Electron main process for Uniconvert",
   "main": "src/main.js",
   "scripts": {

@@ -1,6 +1,6 @@
 {
   "name": "uniconvert-monorepo",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "private": true,
   "description": "A universal file converter for images, videos, audio and documents",
   "scripts": {
