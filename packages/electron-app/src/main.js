@@ -42,11 +42,14 @@ if (!gotTheLock) {
 }
 
 function createWindow() {
+  // 計算根目錄路徑（從 packages/electron-app/src 往上三層）
+  const rootDir = path.join(__dirname, '..', '..', '..')
+  
   win = new BrowserWindow({
     width: 1000,
     height: 650,
     title: 'Uniconvert',
-    icon: path.join(__dirname, '..', '..', '..', 'build', 'icon.png'),
+    icon: path.join(rootDir, 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js')
     }
