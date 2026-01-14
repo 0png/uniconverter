@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card"
 import { 
@@ -71,6 +71,7 @@ export function HistoryView({ t, tAction, language, onReconvert, toast }) {
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
   const [confirmClear, setConfirmClear] = useState(false)
+  const lastOpenLocationTime = useRef(0)
 
   // 載入歷史記錄
   const loadHistory = async () => {
@@ -135,9 +136,14 @@ export function HistoryView({ t, tAction, language, onReconvert, toast }) {
     }
   }
 
-  // 開啟檔案位置
+  // 開啟檔案位置（3 秒 throttle）
   const handleOpenLocation = async (filePath) => {
     if (!window.api?.history) return
+    
+    // Throttle: 3 秒內只能點擊一次
+    const now = Date.now()
+    if (now - lastOpenLocationTime.current < 3000) return
+    lastOpenLocationTime.current = now
     
     try {
       const result = await window.api.history.openLocation(filePath)
