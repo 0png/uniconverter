@@ -32,24 +32,24 @@ if (!fs.existsSync(versionDir)) {
   console.log(`📁 資料夾已存在: v${version}/`)
 }
 
-// 複製檔案
-let copiedCount = 0
+// 移動檔案
+let movedCount = 0
 for (const fileName of filesToCopy) {
   const srcPath = path.join(releaseDir, fileName)
   const destPath = path.join(versionDir, fileName)
   
   if (fs.existsSync(srcPath)) {
-    fs.copyFileSync(srcPath, destPath)
-    const size = (fs.statSync(srcPath).size / 1024 / 1024).toFixed(2)
-    console.log(`✅ 複製: ${fileName} (${size} MB)`)
-    copiedCount++
+    fs.renameSync(srcPath, destPath)
+    const size = (fs.statSync(destPath).size / 1024 / 1024).toFixed(2)
+    console.log(`✅ 移動: ${fileName} (${size} MB)`)
+    movedCount++
   } else {
     console.log(`⚠️  找不到: ${fileName}`)
   }
 }
 
 console.log('='.repeat(40))
-console.log(`\n🎉 完成！已複製 ${copiedCount} 個檔案到 release/v${version}/`)
+console.log(`\n🎉 完成！已移動 ${movedCount} 個檔案到 release/v${version}/`)
 console.log(`\n📤 上傳到 GitHub Release 時，請上傳以下檔案:`)
 filesToCopy.forEach(f => console.log(`   - ${f}`))
 console.log('')
