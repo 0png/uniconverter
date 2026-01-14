@@ -59,10 +59,8 @@ function createWindow() {
   Menu.setApplicationMenu(null)
   win.setMenuBarVisibility(false)
   
-  // 初始化自動更新（僅在打包後的環境中啟用）
-  if (!process.env.VITE_DEV_SERVER_URL) {
-    initAutoUpdater(win)
-  }
+  // 初始化自動更新
+  initAutoUpdater(win)
   
   // 初始化 Discord RPC
   initDiscordRPC()

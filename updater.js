@@ -45,6 +45,10 @@ function initAutoUpdater(win) {
   autoUpdater.allowPrerelease = false
   autoUpdater.allowDowngrade = false
   
+  // 開發環境中強制啟用更新檢查（用於測試）
+  // 注意：實際下載和安裝在開發環境中仍然無法運作
+  autoUpdater.forceDevUpdateConfig = true
+  
   // 設定事件監聽器
   setupEventListeners()
   
