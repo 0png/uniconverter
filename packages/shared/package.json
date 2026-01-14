@@ -1,0 +1,17 @@
+{
+  "name": "@uniconvert/shared",
+  "version": "1.2.2",
+  "description": "Shared utilities for Uniconvert",
+  "main": "src/index.js",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "keywords": [],
+  "author": "0png",
+  "license": "MIT",
+  "dependencies": {}
+}
