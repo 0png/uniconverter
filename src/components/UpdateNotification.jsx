@@ -51,6 +51,7 @@ export function UpdateNotification({ language = 'en' }) {
     error: null
   })
   const [dismissed, setDismissed] = useState(false)
+  const [showUpToDate, setShowUpToDate] = useState(false)
 
   const t = (key) => {
     const lang = language === 'system' 
@@ -75,6 +76,12 @@ export function UpdateNotification({ language = 'en' }) {
       // 有新版本時自動顯示
       if (data.status === 'available' || data.status === 'downloaded') {
         setDismissed(false)
+      }
+      
+      // 已是最新版本時顯示提示，3 秒後自動消失
+      if (data.status === 'not-available') {
+        setShowUpToDate(true)
+        setTimeout(() => setShowUpToDate(false), 3000)
       }
     })
 
@@ -114,8 +121,22 @@ export function UpdateNotification({ language = 'en' }) {
 
   // 不顯示的情況
   if (dismissed) return null
-  if (!updateState.status) return null
-  if (updateState.status === 'not-available') return null
+  if (!updateState.status && !showUpToDate) return null
+
+  // 已是最新版本
+  if (showUpToDate || updateState.status === 'not-available') {
+    if (!showUpToDate) return null
+    return (
+      <div className="fixed bottom-4 right-4 z-50 animate-in slide-in-from-bottom-4">
+        <div className="bg-card border rounded-lg shadow-lg p-4 w-80">
+          <div className="flex items-center gap-3">
+            <CheckCircle className="h-5 w-5 text-green-500" />
+            <span className="text-sm">{t('upToDate')}</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   // 檢查中
   if (updateState.status === 'checking') {
