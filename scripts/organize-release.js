@@ -13,11 +13,10 @@ const version = packageJson.version
 const releaseDir = path.join(__dirname, '..', 'release')
 const versionDir = path.join(releaseDir, `v${version}`)
 
-// 需要複製的檔案類型（使用點分隔的檔案名稱）
-const filesToCopy = [
+// 需要移動的檔案
+const filesToMove = [
   `Uniconvert.Setup.${version}.exe`,
   `Uniconvert.Setup.${version}.exe.blockmap`,
-  `Uniconvert.Portable.${version}.exe`,
   'latest.yml'
 ]
 
@@ -34,7 +33,7 @@ if (!fs.existsSync(versionDir)) {
 
 // 移動檔案
 let movedCount = 0
-for (const fileName of filesToCopy) {
+for (const fileName of filesToMove) {
   const srcPath = path.join(releaseDir, fileName)
   const destPath = path.join(versionDir, fileName)
   
@@ -51,5 +50,5 @@ for (const fileName of filesToCopy) {
 console.log('='.repeat(40))
 console.log(`\n🎉 完成！已移動 ${movedCount} 個檔案到 release/v${version}/`)
 console.log(`\n📤 上傳到 GitHub Release 時，請上傳以下檔案:`)
-filesToCopy.forEach(f => console.log(`   - ${f}`))
+filesToMove.forEach(f => console.log(`   - ${f}`))
 console.log('')

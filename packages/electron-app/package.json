@@ -50,8 +50,7 @@
     ],
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        "nsis"
       ],
       "icon": "../../build/icon.ico"
     },
@@ -61,9 +60,6 @@
       "installerIcon": "../../build/icon.ico",
       "uninstallerIcon": "../../build/icon.ico",
       "artifactName": "${productName}.Setup.${version}.${ext}"
-    },
-    "portable": {
-      "artifactName": "${productName}.Portable.${version}.${ext}"
     },
     "publish": {
       "provider": "github",
