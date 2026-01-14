@@ -145,14 +145,17 @@ export function HistoryView({ t, tAction, language, onReconvert }) {
       if (!result.ok) {
         if (result.error === 'FILE_NOT_FOUND') {
           setErrorMessage(t('fileNotFound'))
-          // 3 秒後自動清除錯誤訊息
           setTimeout(() => setErrorMessage(null), 3000)
         } else {
           console.error('[HistoryView] Failed to open location:', result.error)
+          setErrorMessage(t('fileNotFound'))
+          setTimeout(() => setErrorMessage(null), 3000)
         }
       }
     } catch (err) {
       console.error('[HistoryView] Failed to open location:', err)
+      setErrorMessage(t('fileNotFound'))
+      setTimeout(() => setErrorMessage(null), 3000)
     }
   }
 
