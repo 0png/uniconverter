@@ -1,0 +1,247 @@
+/**
+ * History Manager 測試
+ * 使用 fast-check 進行屬性測試
+ */
+
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
+import fc from 'fast-check'
+import fs from 'fs'
+import path from 'path'
+import os from 'os'
+
+// 直接 require CommonJS 模組
+const historyManager = require('../src/historyManager.js')
+const {
+  MAX_HISTORY_ENTRIES,
+  readHistory,
+  writeHistory,
+  addEntry,
+  removeEntry,
+  clearAll,
+  getAll,
+  filterByType,
+  getEntryCounts
+} = historyManager
+
+// 測試用的 HistoryEntry 生成器
+const historyEntryArb = fc.record({
+  sourceFile: fc.string({ minLength: 1, maxLength: 50 }).map(s => `C:\\test\\${s.replace(/[<>:"/\\|?*]/g, '_')}.png`),
+  outputFile: fc.string({ minLength: 1, maxLength: 50 }).map(s => `C:\\output\\${s.replace(/[<>:"/\\|?*]/g, '_')}.jpg`),
+  conversionType: fc.constantFrom('批量轉PNG', '批量轉JPG', '批量轉WEBP', '批量轉MP4'),
+  fileType: fc.constantFrom('image', 'video', 'audio', 'document', 'markdown'),
+  status: fc.constantFrom('success', 'failed')
+})
+
+describe('HistoryManager', () => {
+  let testFilePath
+
+  beforeEach(() => {
+    // 建立臨時測試檔案路徑
+    testFilePath = path.join(os.tmpdir(), `history-test-${Date.now()}.json`)
+  })
+
+  afterEach(async () => {
+    // 清理測試檔案
+    try {
+      if (fs.existsSync(testFilePath)) {
+        await fs.promises.unlink(testFilePath)
+      }
+    } catch (err) {
+      // 忽略清理錯誤
+    }
+  })
+
+  describe('readHistory', () => {
+    it('should return empty array when file does not exist', async () => {
+      const result = await readHistory(testFilePath)
+      expect(result).toEqual([])
+    })
+
+    it('should return entries from valid file', async () => {
+      const entries = [{ id: '1', sourceFile: 'test.png', outputFile: 'test.jpg', conversionType: '批量轉JPG', fileType: 'image', timestamp: 123, status: 'success' }]
+      await fs.promises.writeFile(testFilePath, JSON.stringify({ version: 1, entries }), 'utf-8')
+      
+      const result = await readHistory(testFilePath)
+      expect(result).toEqual(entries)
+    })
+
+    it('should return empty array for invalid JSON', async () => {
+      await fs.promises.writeFile(testFilePath, 'invalid json', 'utf-8')
+      const result = await readHistory(testFilePath)
+      expect(result).toEqual([])
+    })
+  })
+
+
+  describe('Property 2: History Persistence Round-Trip', () => {
+    it('should preserve all fields after save and read', async () => {
+      await fc.assert(
+        fc.asyncProperty(historyEntryArb, async (entry) => {
+          // 清空歷史
+          await writeHistory([], testFilePath)
+          
+          // 新增記錄
+          const added = await addEntry(entry, testFilePath)
+          
+          // 讀取回來
+          const entries = await readHistory(testFilePath)
+          const found = entries.find(e => e.id === added.id)
+          
+          // 驗證所有欄位
+          expect(found).toBeDefined()
+          expect(found.sourceFile).toBe(entry.sourceFile)
+          expect(found.outputFile).toBe(entry.outputFile)
+          expect(found.conversionType).toBe(entry.conversionType)
+          expect(found.fileType).toBe(entry.fileType)
+          expect(found.status).toBe(entry.status)
+          expect(typeof found.timestamp).toBe('number')
+          expect(typeof found.id).toBe('string')
+        }),
+        { numRuns: 20 }
+      )
+    })
+  })
+
+  describe('Property 3: History Limit Enforcement', () => {
+    it('should never exceed MAX_HISTORY_ENTRIES', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.array(historyEntryArb, { minLength: 1, maxLength: 150 }),
+          async (entries) => {
+            // 清空歷史
+            await writeHistory([], testFilePath)
+            
+            // 新增所有記錄
+            for (const entry of entries) {
+              await addEntry(entry, testFilePath)
+            }
+            
+            // 驗證數量不超過限制
+            const result = await readHistory(testFilePath)
+            expect(result.length).toBeLessThanOrEqual(MAX_HISTORY_ENTRIES)
+          }
+        ),
+        { numRuns: 5 }
+      )
+    })
+
+    it('should remove oldest entries when limit exceeded', async () => {
+      // 建立 100 筆記錄
+      const initialEntries = Array.from({ length: 100 }, (_, i) => ({
+        id: `entry-${i}`,
+        sourceFile: `file-${i}.png`,
+        outputFile: `file-${i}.jpg`,
+        conversionType: '批量轉JPG',
+        fileType: 'image',
+        timestamp: 1000 + i,
+        status: 'success'
+      }))
+      await writeHistory(initialEntries, testFilePath)
+      
+      // 新增一筆
+      await addEntry({
+        sourceFile: 'new.png',
+        outputFile: 'new.jpg',
+        conversionType: '批量轉JPG',
+        fileType: 'image',
+        status: 'success'
+      }, testFilePath)
+      
+      const result = await readHistory(testFilePath)
+      expect(result.length).toBe(100)
+      // 最新的應該在最前面
+      expect(result[0].sourceFile).toBe('new.png')
+    })
+  })
+
+  describe('Property 5: History Filter Correctness', () => {
+    it('should only return entries matching the filter type', async () => {
+      await fc.assert(
+        fc.asyncProperty(
+          fc.array(historyEntryArb, { minLength: 1, maxLength: 50 }),
+          fc.constantFrom('image', 'video', 'audio', 'document', 'markdown'),
+          async (entries, filterType) => {
+            // 建立測試資料
+            const testEntries = entries.map((e, i) => ({
+              id: `entry-${i}`,
+              ...e,
+              timestamp: Date.now() + i
+            }))
+            await writeHistory(testEntries, testFilePath)
+            
+            // 篩選
+            const filtered = await filterByType(filterType, testFilePath)
+            
+            // 驗證所有結果都符合篩選條件
+            for (const entry of filtered) {
+              expect(entry.fileType).toBe(filterType)
+            }
+            
+            // 驗證數量正確
+            const expectedCount = testEntries.filter(e => e.fileType === filterType).length
+            expect(filtered.length).toBe(expectedCount)
+          }
+        ),
+        { numRuns: 20 }
+      )
+    })
+  })
+
+  describe('removeEntry', () => {
+    it('should remove the specified entry', async () => {
+      const entries = [
+        { id: 'entry-1', sourceFile: 'a.png', outputFile: 'a.jpg', conversionType: '批量轉JPG', fileType: 'image', timestamp: 1, status: 'success' },
+        { id: 'entry-2', sourceFile: 'b.png', outputFile: 'b.jpg', conversionType: '批量轉JPG', fileType: 'image', timestamp: 2, status: 'success' }
+      ]
+      await writeHistory(entries, testFilePath)
+      
+      const result = await removeEntry('entry-1', testFilePath)
+      expect(result).toBe(true)
+      
+      const remaining = await readHistory(testFilePath)
+      expect(remaining.length).toBe(1)
+      expect(remaining[0].id).toBe('entry-2')
+    })
+
+    it('should return false for non-existent entry', async () => {
+      await writeHistory([], testFilePath)
+      const result = await removeEntry('non-existent', testFilePath)
+      expect(result).toBe(false)
+    })
+  })
+
+  describe('clearAll', () => {
+    it('should remove all entries', async () => {
+      const entries = [
+        { id: 'entry-1', sourceFile: 'a.png', outputFile: 'a.jpg', conversionType: '批量轉JPG', fileType: 'image', timestamp: 1, status: 'success' }
+      ]
+      await writeHistory(entries, testFilePath)
+      
+      await clearAll(testFilePath)
+      
+      const result = await readHistory(testFilePath)
+      expect(result).toEqual([])
+    })
+  })
+
+  describe('getEntryCounts', () => {
+    it('should return correct counts for each type', async () => {
+      const entries = [
+        { id: '1', fileType: 'image', sourceFile: '', outputFile: '', conversionType: '', timestamp: 1, status: 'success' },
+        { id: '2', fileType: 'image', sourceFile: '', outputFile: '', conversionType: '', timestamp: 2, status: 'success' },
+        { id: '3', fileType: 'video', sourceFile: '', outputFile: '', conversionType: '', timestamp: 3, status: 'success' },
+        { id: '4', fileType: 'audio', sourceFile: '', outputFile: '', conversionType: '', timestamp: 4, status: 'success' }
+      ]
+      await writeHistory(entries, testFilePath)
+      
+      const counts = await getEntryCounts(testFilePath)
+      
+      expect(counts.all).toBe(4)
+      expect(counts.image).toBe(2)
+      expect(counts.video).toBe(1)
+      expect(counts.audio).toBe(1)
+      expect(counts.document).toBe(0)
+      expect(counts.markdown).toBe(0)
+    })
+  })
+})

@@ -1,0 +1,66 @@
+{
+  "name": "@uniconvert/electron-app",
+  "version": "1.2.2",
+  "description": "Electron main process for Uniconvert",
+  "main": "src/main.js",
+  "scripts": {
+    "dev": "electron .",
+    "test": "vitest run",
+    "release": "electron-builder --publish always",
+    "release:build": "electron-builder --publish never",
+    "release:publish": "electron-builder --publish always"
+  },
+  "keywords": [
+    "electron",
+    "uniconvert",
+    "converter"
+  ],
+  "author": "0png",
+  "license": "MIT",
+  "dependencies": {
+    "@uniconvert/shared": "workspace:*",
+    "@uniconvert/converters": "workspace:*",
+    "discord-rpc": "^4.0.1",
+    "electron-updater": "^6.6.2"
+  },
+  "devDependencies": {
+    "electron": "^36.4.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "com.0png.uniconvert",
+    "productName": "Uniconvert",
+    "directories": {
+      "output": "../../release"
+    },
+    "files": [
+      "src/**/*",
+      "../../web_dist/**/*",
+      "../../build/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "../../build",
+        "to": "build"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "../../build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "../../build/icon.ico",
+      "uninstallerIcon": "../../build/icon.ico"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "0png",
+      "repo": "uniconverter"
+    }
+  }
+}
