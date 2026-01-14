@@ -279,7 +279,12 @@ ipcMain.handle('history:get-counts', async () => {
 })
 
 ipcMain.handle('history:open-location', async (e, filePath) => {
+  const fs = require('fs')
   try {
+    // 檢查檔案是否存在
+    if (!fs.existsSync(filePath)) {
+      return { ok: false, error: 'FILE_NOT_FOUND', message: `File not found: ${filePath}` }
+    }
     await shell.showItemInFolder(filePath)
     return { ok: true }
   } catch (err) {

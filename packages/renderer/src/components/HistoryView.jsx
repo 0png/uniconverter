@@ -71,6 +71,7 @@ export function HistoryView({ t, tAction, language, onReconvert }) {
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
   const [confirmClear, setConfirmClear] = useState(false)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   // 載入歷史記錄
   const loadHistory = async () => {
@@ -140,7 +141,16 @@ export function HistoryView({ t, tAction, language, onReconvert }) {
     if (!window.api?.history) return
     
     try {
-      await window.api.history.openLocation(filePath)
+      const result = await window.api.history.openLocation(filePath)
+      if (!result.ok) {
+        if (result.error === 'FILE_NOT_FOUND') {
+          setErrorMessage(t('fileNotFound'))
+          // 3 秒後自動清除錯誤訊息
+          setTimeout(() => setErrorMessage(null), 3000)
+        } else {
+          console.error('[HistoryView] Failed to open location:', result.error)
+        }
+      }
     } catch (err) {
       console.error('[HistoryView] Failed to open location:', err)
     }
@@ -182,6 +192,14 @@ export function HistoryView({ t, tAction, language, onReconvert }) {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden p-6 gap-6">
+      {/* 錯誤訊息提示 */}
+      {errorMessage && (
+        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-destructive text-destructive-foreground px-4 py-3 rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2">
+          <AlertCircle className="h-4 w-4" />
+          <span className="text-sm">{errorMessage}</span>
+        </div>
+      )}
+      
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight">{t('history')}</h1>
         <div className="flex gap-2">
