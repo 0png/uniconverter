@@ -149,6 +149,7 @@ function AppContent() {
             tAction={tAction} 
             language={settings.language}
             onReconvert={handleReconvert}
+            toast={toast}
           />
         )}
         

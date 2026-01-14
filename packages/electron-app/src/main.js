@@ -282,18 +282,8 @@ ipcMain.handle('history:open-location', async (e, filePath) => {
   const fs = require('fs')
   try {
     // 檢查檔案是否存在
-    const fileExists = fs.existsSync(filePath)
-    if (!fileExists) {
-      // 檢查父目錄是否存在
-      const parentDir = path.dirname(filePath)
-      const dirExists = fs.existsSync(parentDir)
-      if (dirExists) {
-        // 檔案不存在但目錄存在，開啟目錄
-        await shell.openPath(parentDir)
-        return { ok: false, error: 'FILE_NOT_FOUND', dirOpened: true }
-      }
-      // 檔案和目錄都不存在
-      return { ok: false, error: 'FILE_NOT_FOUND', dirOpened: false }
+    if (!fs.existsSync(filePath)) {
+      return { ok: false, error: 'FILE_NOT_FOUND' }
     }
     await shell.showItemInFolder(filePath)
     return { ok: true }

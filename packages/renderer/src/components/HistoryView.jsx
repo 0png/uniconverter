@@ -65,13 +65,12 @@ const formatTimeEn = (timestamp) => {
 /**
  * HistoryView - 歷史記錄頁面元件
  */
-export function HistoryView({ t, tAction, language, onReconvert }) {
+export function HistoryView({ t, tAction, language, onReconvert, toast }) {
   const [entries, setEntries] = useState([])
   const [counts, setCounts] = useState({ all: 0, image: 0, video: 0, audio: 0, document: 0, markdown: 0 })
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
   const [confirmClear, setConfirmClear] = useState(false)
-  const [errorMessage, setErrorMessage] = useState(null)
 
   // 載入歷史記錄
   const loadHistory = async () => {
@@ -142,20 +141,11 @@ export function HistoryView({ t, tAction, language, onReconvert }) {
     
     try {
       const result = await window.api.history.openLocation(filePath)
-      if (!result.ok) {
-        if (result.error === 'FILE_NOT_FOUND') {
-          setErrorMessage(t('fileNotFound'))
-          setTimeout(() => setErrorMessage(null), 3000)
-        } else {
-          console.error('[HistoryView] Failed to open location:', result.error)
-          setErrorMessage(t('fileNotFound'))
-          setTimeout(() => setErrorMessage(null), 3000)
-        }
+      if (!result.ok && result.error === 'FILE_NOT_FOUND') {
+        toast?.error(t('error'), t('fileNotFound'))
       }
     } catch (err) {
       console.error('[HistoryView] Failed to open location:', err)
-      setErrorMessage(t('fileNotFound'))
-      setTimeout(() => setErrorMessage(null), 3000)
     }
   }
 
@@ -195,14 +185,6 @@ export function HistoryView({ t, tAction, language, onReconvert }) {
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden p-6 gap-6">
-      {/* 錯誤訊息提示 */}
-      {errorMessage && (
-        <div className="fixed top-4 right-4 z-50 flex items-center gap-2 bg-destructive text-destructive-foreground px-4 py-3 rounded-lg shadow-lg animate-in fade-in slide-in-from-top-2">
-          <AlertCircle className="h-4 w-4" />
-          <span className="text-sm">{errorMessage}</span>
-        </div>
-      )}
-      
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold tracking-tight">{t('history')}</h1>
         <div className="flex gap-2">
