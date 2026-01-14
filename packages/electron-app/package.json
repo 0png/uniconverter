@@ -30,6 +30,7 @@
   "build": {
     "appId": "com.0png.uniconvert",
     "productName": "Uniconvert",
+    "artifactName": "${productName}.${ext}",
     "directories": {
       "output": "../../release"
     },
@@ -58,7 +59,11 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "installerIcon": "../../build/icon.ico",
-      "uninstallerIcon": "../../build/icon.ico"
+      "uninstallerIcon": "../../build/icon.ico",
+      "artifactName": "${productName}.Setup.${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}.Portable.${version}.${ext}"
     },
     "publish": {
       "provider": "github",

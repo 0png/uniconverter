@@ -13,11 +13,11 @@ const version = packageJson.version
 const releaseDir = path.join(__dirname, '..', 'release')
 const versionDir = path.join(releaseDir, `v${version}`)
 
-// 需要複製的檔案類型（electron-builder 產生的檔案名稱用空格）
+// 需要複製的檔案類型（使用點分隔的檔案名稱）
 const filesToCopy = [
-  `Uniconvert Setup ${version}.exe`,
-  `Uniconvert Setup ${version}.exe.blockmap`,
-  `Uniconvert ${version}.exe`,
+  `Uniconvert.Setup.${version}.exe`,
+  `Uniconvert.Setup.${version}.exe.blockmap`,
+  `Uniconvert.Portable.${version}.exe`,
   'latest.yml'
 ]
 
