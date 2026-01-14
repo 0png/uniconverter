@@ -6,149 +6,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Uniconvert</title>
   <style>
-    /* Skeleton Loading Styles - scoped to #skeleton-loader only */
-    #skeleton-loader {
-      --skeleton-bg: hsl(0 0% 100%);
-      --skeleton-sidebar: hsl(240 4.8% 95.9% / 0.2);
-      --skeleton-border: hsl(240 5.9% 90%);
-      --skeleton-pulse: hsl(240 4.8% 95.9%);
-      --skeleton-text: hsl(240 4.8% 90%);
-    }
-    
-    @media (prefers-color-scheme: dark) {
-      #skeleton-loader {
-        --skeleton-bg: hsl(240 10% 3.9%);
-        --skeleton-sidebar: hsl(240 3.7% 15.9% / 0.2);
-        --skeleton-border: hsl(240 3.7% 15.9%);
-        --skeleton-pulse: hsl(240 3.7% 15.9%);
-        --skeleton-text: hsl(240 3.7% 20%);
-      }
-    }
-    
-    #skeleton-loader,
-    #skeleton-loader * {
+    /* 預設背景色，避免白色閃爍 */
+    body {
       margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+      background-color: hsl(240 10% 3.9%); /* 深色主題背景 */
     }
-    
-    #skeleton-loader {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      background: var(--skeleton-bg);
-      z-index: 9999;
-      transition: opacity 0.3s ease;
-    }
-    
-    #skeleton-loader.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-    
-    .skeleton-sidebar {
-      width: 256px;
-      border-right: 1px solid var(--skeleton-border);
-      background: var(--skeleton-sidebar);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-    
-    .skeleton-title {
-      height: 28px;
-      width: 120px;
-      background: var(--skeleton-text);
-      border-radius: 6px;
-      margin-bottom: 24px;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    
-    .skeleton-nav-item {
-      height: 36px;
-      background: var(--skeleton-pulse);
-      border-radius: 6px;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    
-    .skeleton-nav-item:nth-child(2) { animation-delay: 0.1s; }
-    .skeleton-nav-item:nth-child(3) { animation-delay: 0.2s; }
-    .skeleton-nav-item:nth-child(4) { animation-delay: 0.3s; }
-    .skeleton-nav-item:nth-child(5) { animation-delay: 0.4s; }
-    
-    .skeleton-main {
-      flex: 1;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    
-    .skeleton-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .skeleton-header-title {
-      height: 32px;
-      width: 200px;
-      background: var(--skeleton-text);
-      border-radius: 6px;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    
-    .skeleton-header-actions {
-      display: flex;
-      gap: 8px;
-    }
-    
-    .skeleton-btn {
-      height: 36px;
-      width: 100px;
-      background: var(--skeleton-pulse);
-      border-radius: 6px;
-      animation: pulse 1.5s ease-in-out infinite;
-    }
-    
-    .skeleton-content {
-      flex: 1;
-      background: var(--skeleton-pulse);
-      border-radius: 12px;
-      animation: pulse 1.5s ease-in-out infinite;
-      animation-delay: 0.2s;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
+    @media (prefers-color-scheme: light) {
+      body {
+        background-color: hsl(0 0% 100%); /* 淺色主題背景 */
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Skeleton Loading -->
-  <div id="skeleton-loader">
-    <div class="skeleton-sidebar">
-      <div class="skeleton-title"></div>
-      <div class="skeleton-nav-item"></div>
-      <div class="skeleton-nav-item"></div>
-      <div class="skeleton-nav-item"></div>
-      <div class="skeleton-nav-item"></div>
-    </div>
-    <div class="skeleton-main">
-      <div class="skeleton-header">
-        <div class="skeleton-header-title"></div>
-        <div class="skeleton-header-actions">
-          <div class="skeleton-btn"></div>
-          <div class="skeleton-btn"></div>
-        </div>
-      </div>
-      <div class="skeleton-content"></div>
-    </div>
-  </div>
-  
   <div id="root"></div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
