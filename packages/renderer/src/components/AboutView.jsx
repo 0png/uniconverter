@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { CheckUpdateButton } from "@/components/UpdateNotification"
+import iconPng from "@/assets/icon.png"
 
 /**
  * 開啟外部連結
@@ -109,7 +110,7 @@ export function AboutView({ t, language }) {
             <div className="space-y-4">
               <div className="flex items-center gap-4">
                 <img 
-                  src="./icon.png" 
+                  src={iconPng} 
                   alt="Uniconvert" 
                   className="w-16 h-16 rounded-xl"
                 />
