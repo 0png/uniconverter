@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Uniconvert</title>
   <style>
-    /* Skeleton Loading Styles */
-    :root {
+    /* Skeleton Loading Styles - scoped to #skeleton-loader only */
+    #skeleton-loader {
       --skeleton-bg: hsl(0 0% 100%);
       --skeleton-sidebar: hsl(240 4.8% 95.9% / 0.2);
       --skeleton-border: hsl(240 5.9% 90%);
@@ -16,7 +16,7 @@
     }
     
     @media (prefers-color-scheme: dark) {
-      :root {
+      #skeleton-loader {
         --skeleton-bg: hsl(240 10% 3.9%);
         --skeleton-sidebar: hsl(240 3.7% 15.9% / 0.2);
         --skeleton-border: hsl(240 3.7% 15.9%);
@@ -25,15 +25,11 @@
       }
     }
     
-    * {
+    #skeleton-loader,
+    #skeleton-loader * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-    }
-    
-    body {
-      font-family: "Segoe UI", system-ui, sans-serif;
-      overflow: hidden;
     }
     
     #skeleton-loader {
