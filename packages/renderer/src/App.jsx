@@ -92,8 +92,9 @@ function AppContent() {
     const newFiles = []
     for (let i = 0; i < fileList.length; i++) {
       const f = fileList[i]
-      const path = f.path || f.name 
-      newFiles.push({ path, name: f.name, size: f.size })
+      // 使用 Electron 的 webUtils.getPathForFile 取得完整路徑
+      const filePath = window.api?.getPathForFile ? window.api.getPathForFile(f) : (f.path || f.name)
+      newFiles.push({ path: filePath, name: f.name, size: f.size })
     }
     taskQueue.addFiles(newFiles)
   }

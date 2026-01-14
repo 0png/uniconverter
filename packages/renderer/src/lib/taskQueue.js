@@ -96,6 +96,9 @@ export function groupFilesToQueue(files, existingQueue = null) {
     }
   }
   
+  // 記錄哪些群組有新增檔案
+  const groupsWithNewFiles = new Set()
+  
   // 分類新檔案
   for (const file of files) {
     if (existingPaths.has(file.path)) continue
@@ -108,6 +111,16 @@ export function groupFilesToQueue(files, existingQueue = null) {
         size: file.size || 0
       })
       existingPaths.add(file.path)
+      groupsWithNewFiles.add(type)
+    }
+  }
+  
+  // 重置有新增檔案的群組狀態為 pending
+  for (const type of groupsWithNewFiles) {
+    if (queue[type].status === 'completed' || queue[type].status === 'error') {
+      queue[type].status = 'pending'
+      queue[type].progress = 0
+      queue[type].errors = []
     }
   }
   

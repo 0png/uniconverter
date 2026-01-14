@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron')
+const { contextBridge, ipcRenderer, webUtils } = require('electron')
 
 contextBridge.exposeInMainWorld('api', {
   getVersion: () => ipcRenderer.invoke('app:get-version'),
@@ -7,6 +7,9 @@ contextBridge.exposeInMainWorld('api', {
   doAction: (payload) => ipcRenderer.invoke('do-action', payload),
   openFolder: (folderPath) => ipcRenderer.invoke('open-folder', folderPath),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
+  
+  // 取得拖放檔案的完整路徑
+  getPathForFile: (file) => webUtils.getPathForFile(file),
   
   // 自動更新 API
   update: {

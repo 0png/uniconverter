@@ -51,7 +51,11 @@ function createWindow() {
     title: 'Uniconvert',
     icon: path.join(rootDir, 'icon.png'),
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js')
+      preload: path.join(__dirname, 'preload.js'),
+      // 允許在 renderer 中存取 File.path
+      webSecurity: true,
+      contextIsolation: true,
+      nodeIntegration: false
     }
   })
   if (process.env.VITE_DEV_SERVER_URL) {
