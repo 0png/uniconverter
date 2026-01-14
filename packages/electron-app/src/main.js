@@ -42,8 +42,13 @@ if (!gotTheLock) {
 }
 
 function createWindow() {
-  // 計算根目錄路徑（從 packages/electron-app/src 往上三層）
-  const rootDir = path.join(__dirname, '..', '..', '..')
+  // 計算根目錄路徑
+  // 開發環境：從 packages/electron-app/src 往上三層到專案根目錄
+  // 打包環境：web_dist 在 app.asar 內的 web_dist 目錄
+  const isDev = process.env.VITE_DEV_SERVER_URL
+  const rootDir = isDev 
+    ? path.join(__dirname, '..', '..', '..') 
+    : path.join(__dirname, '..', '..', '..')
   
   win = new BrowserWindow({
     width: 1000,
@@ -58,10 +63,13 @@ function createWindow() {
       nodeIntegration: false
     }
   })
-  if (process.env.VITE_DEV_SERVER_URL) {
+  if (isDev) {
     win.loadURL(process.env.VITE_DEV_SERVER_URL)
   } else {
-    win.loadFile(path.join(__dirname, '..', '..', '..', 'web_dist', 'index.html'))
+    // 打包後 web_dist 在 app.asar 內，相對於 src 目錄
+    const htmlPath = path.join(__dirname, '..', 'web_dist', 'index.html')
+    console.log('[Main] Loading HTML from:', htmlPath)
+    win.loadFile(htmlPath)
   }
   Menu.setApplicationMenu(null)
   win.setMenuBarVisibility(false)

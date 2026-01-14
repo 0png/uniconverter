@@ -7,9 +7,9 @@
     "dev": "pnpm --filter @uniconvert/electron-app dev",
     "build": "pnpm -r build",
     "test": "pnpm -r test",
-    "release": "pnpm --filter @uniconvert/electron-app release",
-    "release:build": "pnpm --filter @uniconvert/electron-app release:build",
-    "release:publish": "pnpm --filter @uniconvert/electron-app release:publish",
+    "release": "pnpm --filter @uniconvert/electron-app release && pnpm release:organize",
+    "release:build": "pnpm --filter @uniconvert/electron-app release:build && pnpm release:organize",
+    "release:publish": "pnpm --filter @uniconvert/electron-app release:publish && pnpm release:organize",
     "release:organize": "node scripts/organize-release.js",
     "prepare:icons": "node scripts/gen-icon.js"
   },

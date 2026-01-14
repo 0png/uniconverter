@@ -35,8 +35,11 @@
     },
     "files": [
       "src/**/*",
-      "../../web_dist/**/*",
-      "../../build/**/*"
+      {
+        "from": "../../web_dist",
+        "to": "web_dist",
+        "filter": ["**/*"]
+      }
     ],
     "extraResources": [
       {
