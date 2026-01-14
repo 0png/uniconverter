@@ -1,125 +1,27 @@
 {
-  "name": "uniconvert-rebuilt",
+  "name": "uniconvert-monorepo",
   "version": "1.2.2",
-  "main": "main.js",
+  "private": true,
+  "description": "A universal file converter for images, videos, audio and documents",
   "scripts": {
-    "start": "vite build && electron .",
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "prepare:icons": "node scripts/gen-icon.js",
-    "release": "npm run build && electron-builder --win --publish never && node scripts/organize-release.js",
-    "release:build": "npm run build && electron-builder --win --publish never",
-    "release:publish": "npm run build && electron-builder --win --publish always",
+    "dev": "pnpm --filter @uniconvert/electron-app dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "release": "pnpm --filter @uniconvert/electron-app release",
+    "release:build": "pnpm --filter @uniconvert/electron-app release:build",
+    "release:publish": "pnpm --filter @uniconvert/electron-app release:publish",
     "release:organize": "node scripts/organize-release.js",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "prepare:icons": "node scripts/gen-icon.js"
   },
   "keywords": [],
   "author": "0png",
   "license": "MIT",
-  "description": "A universal file converter for images, videos, audio and documents",
-  "dependencies": {
-    "@radix-ui/react-progress": "^1.1.8",
-    "@radix-ui/react-slot": "^1.2.4",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "discord-rpc": "^4.0.1",
-    "electron-updater": "^6.7.3",
-    "ffmpeg-static": "^5.2.0",
-    "fluent-ffmpeg": "^2.1.2",
-    "heic-convert": "^2.1.0",
-    "lucide-react": "^0.562.0",
-    "md-to-pdf": "^5.2.5",
-    "pdf-lib": "^1.17.1",
-    "pdf-to-png-converter": "^3.11.0",
-    "pdfjs-dist": "^5.4.530",
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "sharp": "^0.33.5",
-    "skia-canvas": "^3.0.8",
-    "tailwind-merge": "^3.4.0"
-  },
-  "devDependencies": {
-    "@tailwindcss/postcss": "^4.1.18",
-    "@vitejs/plugin-react": "^4.7.0",
-    "autoprefixer": "^10.4.23",
-    "electron": "^31.0.0",
-    "electron-builder": "^24.13.3",
-    "fast-check": "^4.5.3",
-    "png-to-ico": "^2.1.7",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.18",
-    "vite": "^6.4.1",
-    "vitest": "^4.0.17"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/0png/uniconverter.git"
   },
-  "build": {
-    "appId": "com.uniconvert.app",
-    "productName": "Uniconvert",
-    "copyright": "Copyright © 2025 0png",
-    "asar": true,
-    "compression": "maximum",
-    "publish": {
-      "provider": "github",
-      "owner": "0png",
-      "repo": "uniconverter",
-      "releaseType": "release"
-    },
-    "files": [
-      "web_dist/**/*",
-      "main.js",
-      "preload.js",
-      "updater.js",
-      "discord-rpc.js",
-      "converters/**/*",
-      "lib/**/*",
-      "!lib/*.test.js",
-      "icon.png",
-      "package.json",
-      "!node_modules/**/*.md",
-      "!node_modules/**/*.txt",
-      "!node_modules/**/*.map",
-      "!node_modules/**/test/**",
-      "!node_modules/**/tests/**",
-      "!node_modules/**/__tests__/**",
-      "!node_modules/**/docs/**",
-      "!node_modules/**/example/**",
-      "!node_modules/**/examples/**"
-    ],
-    "asarUnpack": [
-      "node_modules/sharp/**/*",
-      "node_modules/ffmpeg-static/**/*",
-      "node_modules/pdf-to-png-converter/**/*"
-    ],
-    "directories": {
-      "buildResources": "build",
-      "output": "release"
-    },
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
-      "icon": "build/icon.ico"
-    },
-    "nsis": {
-      "artifactName": "${productName}.Setup.${version}.${ext}",
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico",
-      "installerHeaderIcon": "build/icon.ico",
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "Uniconvert"
-    }
+  "devDependencies": {
+    "fast-check": "^4.5.3",
+    "vitest": "^4.0.17"
   }
 }
