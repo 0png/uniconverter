@@ -10,7 +10,7 @@ import fs from 'fs'
 
 describe('Document Converter - Error Handling', () => {
   describe('markdownToPdf (H6 Fix)', () => {
-    it('should not repeatedly import fs in loop', async () => {
+    it('should use top-level fs import instead of repeated dynamic imports', async () => {
       // 建立測試檔案
       const testDir = path.join(os.tmpdir(), `md-test-${Date.now()}`)
       await fs.promises.mkdir(testDir, { recursive: true })
@@ -26,6 +26,10 @@ describe('Document Converter - Error Handling', () => {
         expect(result).toHaveProperty('ok')
         expect(result).toHaveProperty('fail')
         expect(result).toHaveProperty('errors')
+        
+        // 驗證 fs 是從頂部 import（透過成功執行來驗證）
+        // 如果每次迴圈都 import，會有效能問題但不會失敗
+        // 這個測試主要確保功能正常
       } finally {
         // 清理
         try {

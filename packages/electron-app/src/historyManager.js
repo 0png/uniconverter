@@ -21,6 +21,9 @@ const crypto = require('crypto')
 const MAX_HISTORY_ENTRIES = 100
 const HISTORY_FILE = 'conversion-history.json'
 
+// 寫入佇列：確保寫入操作序列化執行
+let writeQueue = Promise.resolve()
+
 /**
  * 取得歷史記錄檔案路徑
  * @returns {string}
@@ -60,12 +63,12 @@ async function readHistory(filePath) {
 }
 
 /**
- * 寫入歷史記錄
+ * 寫入歷史記錄（內部函式，不使用佇列）
  * @param {HistoryEntry[]} entries
  * @param {string} [filePath] - 可選的檔案路徑（用於測試）
  * @returns {Promise<void>}
  */
-async function writeHistory(entries, filePath) {
+async function writeHistoryInternal(entries, filePath) {
   const targetPath = filePath || getHistoryFilePath()
   const data = {
     version: 1,
@@ -80,35 +83,64 @@ async function writeHistory(entries, filePath) {
 }
 
 /**
+ * 寫入歷史記錄（使用佇列序列化）
+ * @param {HistoryEntry[]} entries
+ * @param {string} [filePath] - 可選的檔案路徑（用於測試）
+ * @returns {Promise<void>}
+ */
+function writeHistory(entries, filePath) {
+  // 將寫入操作加入佇列，確保序列化執行
+  const operation = writeQueue
+    .then(() => writeHistoryInternal(entries, filePath))
+    .catch((err) => {
+      // 錯誤會傳播給呼叫端，但不影響 queue 繼續執行
+      throw err
+    })
+  
+  // 更新 queue：無論成功或失敗，都繼續下一個操作
+  writeQueue = operation.catch(() => {})
+  
+  return operation
+}
+
+/**
  * 新增歷史記錄
  * @param {Omit<HistoryEntry, 'id' | 'timestamp'>} entry
  * @param {string} [filePath] - 可選的檔案路徑（用於測試）
  * @returns {Promise<HistoryEntry>}
  */
 async function addEntry(entry, filePath) {
-  const entries = await readHistory(filePath)
+  // 將整個操作（讀+寫）加入佇列，確保序列化執行
+  const operation = writeQueue.then(async () => {
+    const entries = await readHistory(filePath)
+    
+    const newEntry = {
+      id: crypto.randomUUID(),
+      sourceFile: entry.sourceFile,
+      outputFile: entry.outputFile,
+      conversionType: entry.conversionType,
+      fileType: entry.fileType,
+      timestamp: Date.now(),
+      status: entry.status
+    }
+    
+    // 建立新的陣列（不修改原始 entries）
+    const updatedEntries = [newEntry, ...entries]
+    
+    // 限制最多 100 筆
+    if (updatedEntries.length > MAX_HISTORY_ENTRIES) {
+      updatedEntries.splice(MAX_HISTORY_ENTRIES)
+    }
+    
+    // 寫入磁碟
+    await writeHistoryInternal(updatedEntries, filePath)
+    return newEntry
+  })
   
-  const newEntry = {
-    id: crypto.randomUUID(),
-    sourceFile: entry.sourceFile,
-    outputFile: entry.outputFile,
-    conversionType: entry.conversionType,
-    fileType: entry.fileType,
-    timestamp: Date.now(),
-    status: entry.status
-  }
+  // 更新 queue：無論成功或失敗，都繼續下一個操作
+  writeQueue = operation.catch(() => {})
   
-  // 建立新的陣列（不修改原始 entries）
-  const updatedEntries = [newEntry, ...entries]
-  
-  // 限制最多 100 筆
-  if (updatedEntries.length > MAX_HISTORY_ENTRIES) {
-    updatedEntries.splice(MAX_HISTORY_ENTRIES)
-  }
-  
-  // 先寫入磁碟，成功後才回傳（確保記憶體與磁碟一致）
-  await writeHistory(updatedEntries, filePath)
-  return newEntry
+  return operation
 }
 
 /**
@@ -118,28 +150,43 @@ async function addEntry(entry, filePath) {
  * @returns {Promise<boolean>}
  */
 async function removeEntry(id, filePath) {
-  const entries = await readHistory(filePath)
-  const index = entries.findIndex(e => e.id === id)
+  // 將整個操作（讀+寫）加入佇列，確保序列化執行
+  const operation = writeQueue.then(async () => {
+    const entries = await readHistory(filePath)
+    const index = entries.findIndex(e => e.id === id)
+    
+    if (index === -1) {
+      return false
+    }
+    
+    // 建立新的陣列（不修改原始 entries）
+    const updatedEntries = entries.filter(e => e.id !== id)
+    
+    // 寫入磁碟
+    await writeHistoryInternal(updatedEntries, filePath)
+    return true
+  })
   
-  if (index === -1) {
-    return false
-  }
+  // 更新 queue：無論成功或失敗，都繼續下一個操作
+  writeQueue = operation.catch(() => {})
   
-  // 建立新的陣列（不修改原始 entries）
-  const updatedEntries = entries.filter(e => e.id !== id)
-  
-  // 先寫入磁碟，成功後才回傳（確保記憶體與磁碟一致）
-  await writeHistory(updatedEntries, filePath)
-  return true
+  return operation
 }
 
 /**
  * 清除所有歷史記錄
  * @param {string} [filePath] - 可選的檔案路徑（用於測試）
  * @returns {Promise<void>}
+ * @throws {Error} 如果寫入失敗
  */
 async function clearAll(filePath) {
-  await writeHistory([], filePath)
+  // 將操作加入佇列，確保序列化執行
+  const operation = writeQueue.then(() => writeHistoryInternal([], filePath))
+  
+  // 更新 queue：無論成功或失敗，都繼續下一個操作
+  writeQueue = operation.catch(() => {})
+  
+  return operation
 }
 
 /**

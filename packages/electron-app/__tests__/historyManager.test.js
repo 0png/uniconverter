@@ -303,6 +303,41 @@ describe('HistoryManager', () => {
         expect(err.message).toContain('Failed to write history file')
       }
     })
+
+    it('should serialize concurrent addEntry calls to prevent race conditions', async () => {
+      // 清空歷史
+      await writeHistory([], testFilePath)
+      
+      // 同時執行多個 addEntry
+      const promises = []
+      for (let i = 0; i < 5; i++) {
+        promises.push(
+          addEntry({
+            sourceFile: `file-${i}.png`,
+            outputFile: `file-${i}.jpg`,
+            conversionType: '批量轉JPG',
+            fileType: 'image',
+            status: 'success'
+          }, testFilePath)
+        )
+      }
+      
+      // 等待所有操作完成
+      await Promise.all(promises)
+      
+      // 驗證所有記錄都被正確保存
+      const entries = await readHistory(testFilePath)
+      expect(entries.length).toBe(5)
+      
+      // 驗證沒有重複的 ID
+      const ids = entries.map(e => e.id)
+      const uniqueIds = new Set(ids)
+      expect(uniqueIds.size).toBe(5)
+      
+      // 驗證所有檔案名稱都存在
+      const sourceFiles = entries.map(e => e.sourceFile).sort()
+      expect(sourceFiles).toEqual(['file-0.png', 'file-1.png', 'file-2.png', 'file-3.png', 'file-4.png'])
+    })
   })
 
   describe('getEntryCounts', () => {

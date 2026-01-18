@@ -220,6 +220,15 @@ export async function batchConvert(files, format, outputDir) {
  * @param {string[]} files - 輸入檔案路徑陣列
  * @param {string} outputFile - 輸出 PDF 路徑
  * @returns {Promise<{ ok: number, fail: number, errors: Array }>}
+ * 
+ * 回傳值說明：
+ * - ok: 成功建立的 PDF 數量（0 或 1）
+ * - fail: 失敗的 PDF 數量（0 或 1）
+ * - errors: 處理過程中的警告/錯誤資訊
+ *   - 如果 PDF 成功建立但部分圖片失敗，errors 包含圖片錯誤（ok=1, fail=0）
+ *   - 如果 PDF 建立失敗，errors 包含 PDF 錯誤（ok=0, fail=1）
+ * 
+ * 注意：即使部分圖片無法處理，只要至少有一張圖片成功，PDF 仍會建立（ok=1）
  */
 export async function mergeImagesToPDF(files, outputFile) {
   const errors = []
