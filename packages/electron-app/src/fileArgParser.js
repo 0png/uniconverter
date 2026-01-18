@@ -39,7 +39,8 @@ function isSupportedFile(filePath) {
 function fileExists(filePath) {
   try {
     return fs.existsSync(filePath) && fs.statSync(filePath).isFile()
-  } catch {
+  } catch (err) {
+    console.warn(`[fileArgParser] Cannot access file ${filePath}: ${err.code || err.message}`)
     return false
   }
 }
@@ -53,7 +54,8 @@ function getFileSize(filePath) {
   try {
     const stats = fs.statSync(filePath)
     return stats.size
-  } catch {
+  } catch (err) {
+    console.warn(`[fileArgParser] Cannot get file size for ${filePath}: ${err.code || err.message}`)
     return 0
   }
 }

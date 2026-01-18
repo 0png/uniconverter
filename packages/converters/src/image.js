@@ -97,6 +97,10 @@ async function convertHeicToBuffer(filePath, format) {
     quality: 0.9
   })
   
+  if (!outputBuffer || outputBuffer.byteLength === 0) {
+    throw new Error('HEIC conversion failed: output buffer is empty')
+  }
+  
   return Buffer.from(outputBuffer)
 }
 
@@ -284,13 +288,14 @@ export async function mergeImagesToPDF(files, outputFile) {
     }
     
     if (successCount === 0) {
-      return createResult(0, 1, [{ file: outputFile, error: 'No images could be processed' }])
+      return createResult(0, files.length, errors.concat([{ file: outputFile, error: 'No images could be processed' }]))
     }
     
     const bytes = await pdfDoc.save()
     fs.writeFileSync(outputFile, bytes)
     
-    return createResult(1, errors.length > 0 ? 1 : 0, errors)
+    const failCount = errors.length
+    return createResult(1, failCount, errors)
   } catch (e) {
     return createResult(0, 1, [{ file: outputFile, error: e.message || String(e) }])
   }

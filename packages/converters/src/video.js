@@ -21,6 +21,11 @@ async function initFfmpeg() {
     ffmpegPath = ffmpegPathModule.default
     
     if (ffmpeg && ffmpegPath) {
+      // 驗證 FFmpeg 路徑是否有效
+      const fs = await import('fs')
+      if (!fs.existsSync(ffmpegPath)) {
+        throw new Error(`FFmpeg binary not found at: ${ffmpegPath}`)
+      }
       ffmpeg.setFfmpegPath(ffmpegPath)
     }
     return true

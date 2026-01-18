@@ -71,7 +71,12 @@ async function writeHistory(entries, filePath) {
     version: 1,
     entries: entries
   }
-  await fs.promises.writeFile(targetPath, JSON.stringify(data, null, 2), 'utf-8')
+  try {
+    await fs.promises.writeFile(targetPath, JSON.stringify(data, null, 2), 'utf-8')
+  } catch (err) {
+    console.error('[HistoryManager] Failed to write history:', err.message)
+    throw new Error(`Failed to write history file: ${err.message}`)
+  }
 }
 
 /**
