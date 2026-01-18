@@ -14,7 +14,7 @@
     "electron",
     "uniconvert",
     "converter"
-  ],
+  ], 
   "author": "0png",
   "license": "MIT",
   "dependencies": {

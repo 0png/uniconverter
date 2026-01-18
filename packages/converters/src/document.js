@@ -1,4 +1,5 @@
 import path from 'path'
+import fs from 'fs'
 import { fileExists, ensureDir, getUniqueFilename, createResult, getOutputDir } from './utils.js'
 
 // 動態載入 md-to-pdf
@@ -59,7 +60,6 @@ export async function markdownToPdf(files, outputDir) {
       }
 
       // 驗證檔案內容
-      const fs = await import('fs')
       const content = await fs.promises.readFile(f, 'utf-8')
       if (!content || content.trim().length === 0) {
         errors.push({ file: f, error: 'Markdown file is empty' })

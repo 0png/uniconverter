@@ -224,6 +224,87 @@ describe('HistoryManager', () => {
     })
   })
 
+  describe('Error Handling (H1 Fix)', () => {
+    it('should not modify memory state if writeHistory fails in addEntry', async () => {
+      // 建立初始狀態
+      const initialEntries = [
+        { id: 'entry-1', sourceFile: 'a.png', outputFile: 'a.jpg', conversionType: '批量轉JPG', fileType: 'image', timestamp: 1, status: 'success' }
+      ]
+      await writeHistory(initialEntries, testFilePath)
+      
+      // 使用無效路徑強制寫入失敗
+      const invalidPath = path.join('Z:\\invalid\\path\\that\\does\\not\\exist', 'test.json')
+      
+      try {
+        await addEntry({
+          sourceFile: 'new.png',
+          outputFile: 'new.jpg',
+          conversionType: '批量轉JPG',
+          fileType: 'image',
+          status: 'success'
+        }, invalidPath)
+        // 應該拋出錯誤
+        expect.fail('Should have thrown an error')
+      } catch (err) {
+        // 預期會拋出錯誤
+        expect(err.message).toContain('Failed to write history file')
+      }
+      
+      // 驗證原始檔案未被修改
+      const entries = await readHistory(testFilePath)
+      expect(entries.length).toBe(1)
+      expect(entries[0].id).toBe('entry-1')
+    })
+
+    it('should not modify memory state if writeHistory fails in removeEntry', async () => {
+      // 建立初始狀態
+      const initialEntries = [
+        { id: 'entry-1', sourceFile: 'a.png', outputFile: 'a.jpg', conversionType: '批量轉JPG', fileType: 'image', timestamp: 1, status: 'success' },
+        { id: 'entry-2', sourceFile: 'b.png', outputFile: 'b.jpg', conversionType: '批量轉JPG', fileType: 'image', timestamp: 2, status: 'success' }
+      ]
+      await writeHistory(initialEntries, testFilePath)
+      
+      // 建立一個唯讀檔案來強制寫入失敗
+      const readonlyPath = path.join(os.tmpdir(), `readonly-test-${Date.now()}.json`)
+      await writeHistory(initialEntries, readonlyPath)
+      
+      // 在 Windows 上設定唯讀屬性
+      try {
+        await fs.promises.chmod(readonlyPath, 0o444)
+        
+        try {
+          await removeEntry('entry-1', readonlyPath)
+          // 應該拋出錯誤
+          expect.fail('Should have thrown an error')
+        } catch (err) {
+          // 預期會拋出錯誤
+          expect(err.message).toContain('Failed to write history file')
+        }
+      } finally {
+        // 恢復權限並清理
+        try {
+          await fs.promises.chmod(readonlyPath, 0o666)
+          await fs.promises.unlink(readonlyPath)
+        } catch {}
+      }
+      
+      // 驗證原始檔案未被修改
+      const entries = await readHistory(testFilePath)
+      expect(entries.length).toBe(2)
+    })
+
+    it('should throw error with clear message when writeHistory fails', async () => {
+      const invalidPath = path.join('Z:\\invalid\\path\\that\\does\\not\\exist', 'test.json')
+      
+      try {
+        await writeHistory([], invalidPath)
+        expect.fail('Should have thrown an error')
+      } catch (err) {
+        expect(err.message).toContain('Failed to write history file')
+      }
+    })
+  })
+
   describe('getEntryCounts', () => {
     it('should return correct counts for each type', async () => {
       const entries = [

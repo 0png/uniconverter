@@ -98,15 +98,16 @@ async function addEntry(entry, filePath) {
     status: entry.status
   }
   
-  // 新記錄加到最前面
-  entries.unshift(newEntry)
+  // 建立新的陣列（不修改原始 entries）
+  const updatedEntries = [newEntry, ...entries]
   
   // 限制最多 100 筆
-  if (entries.length > MAX_HISTORY_ENTRIES) {
-    entries.splice(MAX_HISTORY_ENTRIES)
+  if (updatedEntries.length > MAX_HISTORY_ENTRIES) {
+    updatedEntries.splice(MAX_HISTORY_ENTRIES)
   }
   
-  await writeHistory(entries, filePath)
+  // 先寫入磁碟，成功後才回傳（確保記憶體與磁碟一致）
+  await writeHistory(updatedEntries, filePath)
   return newEntry
 }
 
@@ -124,8 +125,11 @@ async function removeEntry(id, filePath) {
     return false
   }
   
-  entries.splice(index, 1)
-  await writeHistory(entries, filePath)
+  // 建立新的陣列（不修改原始 entries）
+  const updatedEntries = entries.filter(e => e.id !== id)
+  
+  // 先寫入磁碟，成功後才回傳（確保記憶體與磁碟一致）
+  await writeHistory(updatedEntries, filePath)
   return true
 }
 

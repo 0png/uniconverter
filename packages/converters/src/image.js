@@ -294,8 +294,8 @@ export async function mergeImagesToPDF(files, outputFile) {
     const bytes = await pdfDoc.save()
     fs.writeFileSync(outputFile, bytes)
     
-    const failCount = errors.length
-    return createResult(1, failCount, errors)
+    // PDF 成功建立，回傳 ok=1, fail=0，但保留圖片錯誤資訊
+    return createResult(1, 0, errors)
   } catch (e) {
     return createResult(0, 1, [{ file: outputFile, error: e.message || String(e) }])
   }
