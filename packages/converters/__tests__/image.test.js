@@ -79,12 +79,8 @@ describe('Image Converter - Error Handling', () => {
         // 驗證：PDF 檔案確實被建立
         expect(fs.existsSync(outputFile)).toBe(true)
       } finally {
-        // 清理
-        try {
-          await fs.promises.unlink(validImage)
-          if (fs.existsSync(outputFile)) await fs.promises.unlink(outputFile)
-          await fs.promises.rmdir(testDir)
-        } catch {}
+        // 清理：使用 recursive 刪除整個目錄，避免清理順序問題
+        await fs.promises.rm(testDir, { recursive: true, force: true }).catch(() => {})
       }
     })
   })

@@ -3,6 +3,42 @@
 
 ## 🔴 重大問題 (High Priority) - 必須立即修復
 
+### ✅ CRITICAL-H1-REOPEN: historyManager.js - writeQueue 全域狀態污染 [已修復]
+- **檔案**: `packages/electron-app/src/historyManager.js`
+- **行數**: 24
+- **問題**: 
+  1. `writeQueue` 是模組層級的全域變數，測試之間會互相污染
+  2. 測試 A 的操作會影響測試 B 的 writeQueue 狀態
+  3. 並發測試會使用同一個 queue，導致不可預測的結果
+  4. 在慢速 CI 環境或高負載情況下會隨機失敗
+- **為什麼測試沒發現**: 測試使用不同的 filePath，剛好速度夠快沒出問題
+- **影響**: 測試隔離失敗，CI 環境會隨機失敗
+- **嚴重性**: Critical
+- **修復內容**:
+  1. 將 `let writeQueue` 改為 `const writeQueues = new Map()`
+  2. 新增 `getWriteQueue(filePath)` 和 `setWriteQueue(filePath, queue)` 輔助函式
+  3. 所有使用 writeQueue 的地方改為使用 getWriteQueue/setWriteQueue
+  4. 每個 filePath 有獨立的 queue，確保測試隔離
+- **負責人**: /fix
+- **狀態**: ✅ 已修復 (2025-01-18)
+
+### ✅ CRITICAL-H7-REOPEN: image.test.js - 測試清理不完整 [已修復]
+- **檔案**: `packages/converters/__tests__/image.test.js`
+- **行數**: 73-78
+- **問題**: 
+  1. 清理順序錯誤：如果第一個 unlink 失敗，後續清理不會執行
+  2. `catch {}` 吞掉所有錯誤，隱藏真正的問題
+  3. `rmdir()` 會因為目錄不是空的而失敗，但被吞掉了
+  4. 下次測試可能因為殘留檔案而失敗
+- **影響**: 測試環境污染，Windows 上尤其嚴重（檔案鎖定）
+- **嚴重性**: Critical
+- **修復內容**:
+  1. 使用 `fs.promises.rm(testDir, { recursive: true, force: true })`
+  2. 一次刪除整個目錄，避免清理順序問題
+  3. 保留 `.catch(() => {})` 避免清理失敗影響測試結果
+- **負責人**: /fix
+- **狀態**: ✅ 已修復 (2025-01-18)
+
 ### ✅ H1-INCOMPLETE: historyManager.js - 並發寫入競爭條件未解決 [已修復]
 - **檔案**: `packages/electron-app/src/historyManager.js`
 - **函式**: `addEntry()`, `removeEntry()`
@@ -19,6 +55,7 @@
   3. 新增混合操作測試（addEntry + removeEntry 並發）
 - **負責人**: /fix
 - **狀態**: ✅ 已修復 (2025-01-18)
+- **備註**: ⚠️ 但發現新問題 CRITICAL-H1-REOPEN（全域狀態污染）
 
 ### H4-SEMANTIC: image.js - mergeImagesToPDF API 語意不清
 - **檔案**: `packages/converters/src/image.js`
@@ -53,8 +90,48 @@
   3. 新增 PDF 檔案存在性驗證
 - **負責人**: /fix
 - **狀態**: ✅ 已修復 (2025-01-18)
+- **備註**: ⚠️ 但發現新問題 CRITICAL-H7-REOPEN（測試清理不完整）
 
 ## 🟡 潛在風險 (Medium Priority)
+
+### ✅ M0-H1: historyManager.js - getAll() 沒有使用 queue [已修復]
+- **檔案**: `packages/electron-app/src/historyManager.js`
+- **函式**: `getAll()`
+- **問題**: 
+  1. `getAll()` 直接讀取，不經過 writeQueue
+  2. 如果有 `addEntry()` 正在執行，可能讀到舊資料
+  3. 與 `addEntry()` 的設計不一致
+- **影響**: 並發讀寫時可能讀到不一致的資料
+- **嚴重性**: Medium
+- **修復內容**: `return getWriteQueue(filePath).then(() => readHistory(filePath))`
+- **負責人**: /fix
+- **狀態**: ✅ 已修復 (2025-01-18)
+
+### M0-H1-TEST: historyManager.test.js - 測試時序依賴
+- **檔案**: `packages/electron-app/__tests__/historyManager.test.js`
+- **行數**: 35
+- **問題**: 
+  1. 使用 `Date.now()` 生成測試檔案名稱
+  2. 並發測試可能在同一毫秒內執行，產生相同的檔案路徑
+  3. 系統時間回溯（NTP 同步）可能產生重複檔案名
+- **影響**: 測試可能隨機失敗（機率很低）
+- **嚴重性**: Medium
+- **建議**: 使用 `crypto.randomUUID()` 代替 `Date.now()`
+- **負責人**: /fix
+- **狀態**: 新發現問題
+
+### M0-H7: image.test.js - 硬編碼 PNG buffer
+- **檔案**: `packages/converters/__tests__/image.test.js`
+- **行數**: 49-60
+- **問題**: 
+  1. 硬編碼 40 bytes 的 PNG magic numbers
+  2. 可維護性差，沒人知道這些數字是什麼
+  3. 如果 sharp 或 pdf-lib 更新，可能不接受這個最小 PNG
+- **影響**: 測試脆弱，未來可能莫名其妙失敗
+- **嚴重性**: Medium
+- **建議**: 使用 sharp 動態生成測試圖片
+- **負責人**: /fix
+- **狀態**: 新發現問題
 
 ### M1-RACE: historyManager.js - 多視窗並發寫入風險
 - **檔案**: `packages/electron-app/src/historyManager.js`
@@ -258,19 +335,20 @@
 ## 📈 統計
 
 ### 本次審查發現（H1-H7 修復檢查）
-- 🔴 新增重大問題: 3 → **2 項已修復** ✅
-  - ✅ H1-INCOMPLETE (已修復)
-  - H4-SEMANTIC (待修復)
-  - ✅ H7-TEST-INVALID (已修復)
-- 🟡 新增潛在風險: 2 (M2-VALIDATION, M3-CLARITY)
-- **H1-H7 修復狀態**: 部分完成 → **H1 和 H7 已完成修復**
+- ✅ **H1 和 H7 Critical 問題已完全修復**：
+  - ✅ CRITICAL-H1-REOPEN: writeQueue 全域狀態污染（已修復）
+  - ✅ CRITICAL-H7-REOPEN: 測試清理不完整（已修復）
+  - ✅ M0-H1: getAll() 現在使用 queue（已修復）
+- 🟡 剩餘 2 個 Medium 問題：
+  - M0-H1-TEST: 測試時序依賴（建議使用 randomUUID）
+  - M0-H7: 硬編碼 PNG buffer（建議使用 sharp 生成）
 
 ### 總體統計
-- 🔴 重大問題: 1 (H4-SEMANTIC 待修復，H1 和 H7 已修復)
-- 🟡 潛在風險: 10
+- 🔴 重大問題: 1 (H4-SEMANTIC 待修復，H1 和 H7 Critical 已修復)
+- 🟡 潛在風險: 12 (M0-H1 已修復，剩餘 12 個)
 - 🟢 程式碼品質: 9
 - 📊 架構問題: 3
-- **總計: 23 項 (1 高優先級, 10 中優先級, 12 低優先級)**
+- **總計: 25 項 (1 高優先級, 12 中優先級, 12 低優先級)**
 
 ---
 
@@ -293,7 +371,30 @@
 
 ## 修復記錄
 
-### 2025-01-18
+### 2025-01-18 (第三次修復 - Critical 問題)
+- ✅ **CRITICAL-H1-REOPEN**: 修復 writeQueue 全域狀態污染
+  - 將 `let writeQueue` 改為 `const writeQueues = new Map()`
+  - 每個 filePath 有獨立的 queue，確保測試隔離
+  - 新增 getWriteQueue/setWriteQueue 輔助函式
+  - 所有測試通過，測試隔離問題解決
+- ✅ **CRITICAL-H7-REOPEN**: 修復測試清理不完整
+  - 使用 `fs.promises.rm({ recursive: true, force: true })`
+  - 一次刪除整個目錄，避免清理順序問題
+  - 測試清理更可靠，不會污染測試環境
+- ✅ **M0-H1**: 修復 getAll() 不使用 queue
+  - getAll() 現在等待 writeQueue 完成後再讀取
+  - 確保讀取到最新資料
+
+### 2025-01-18 (第二次審查)
+- ❌ **H1 修復不完整**: 發現 CRITICAL-H1-REOPEN（全域狀態污染）
+  - 註解補充了，但 writeQueue 全域變數會導致測試隔離失敗
+  - 在 CI 環境或並發執行時會隨機失敗
+- ❌ **H7 修復不完整**: 發現 CRITICAL-H7-REOPEN（測試清理不完整）
+  - 測試邏輯改了，但清理邏輯有缺陷
+  - `catch {}` 吞掉錯誤，清理順序錯誤
+- 🟡 發現 3 個新的 Medium 問題
+
+### 2025-01-18 (第一次修復)
 - ✅ **H7-TEST-INVALID**: 修正 image.test.js 測試邏輯
   - 修正測試名稱與實作不符的問題
   - 正確驗證「部分成功部分失敗」的核心情境

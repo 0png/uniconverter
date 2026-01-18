@@ -21,8 +21,8 @@ const crypto = require('crypto')
 const MAX_HISTORY_ENTRIES = 100
 const HISTORY_FILE = 'conversion-history.json'
 
-// 寫入佇列：確保寫入操作序列化執行
-let writeQueue = Promise.resolve()
+// 寫入佇列：為每個檔案路徑維護獨立的 queue，確保測試隔離
+const writeQueues = new Map()
 
 /**
  * 取得歷史記錄檔案路徑
@@ -83,6 +83,29 @@ async function writeHistoryInternal(entries, filePath) {
 }
 
 /**
+ * 取得指定檔案路徑的 writeQueue
+ * @param {string} [filePath] - 檔案路徑
+ * @returns {Promise<void>}
+ */
+function getWriteQueue(filePath) {
+  const targetPath = filePath || getHistoryFilePath()
+  if (!writeQueues.has(targetPath)) {
+    writeQueues.set(targetPath, Promise.resolve())
+  }
+  return writeQueues.get(targetPath)
+}
+
+/**
+ * 更新指定檔案路徑的 writeQueue
+ * @param {string} [filePath] - 檔案路徑
+ * @param {Promise<any>} queue - 新的 queue
+ */
+function setWriteQueue(filePath, queue) {
+  const targetPath = filePath || getHistoryFilePath()
+  writeQueues.set(targetPath, queue)
+}
+
+/**
  * 寫入歷史記錄（使用佇列序列化）
  * @param {HistoryEntry[]} entries
  * @param {string} [filePath] - 可選的檔案路徑（用於測試）
@@ -90,7 +113,8 @@ async function writeHistoryInternal(entries, filePath) {
  */
 function writeHistory(entries, filePath) {
   // 將寫入操作加入佇列，確保序列化執行
-  const operation = writeQueue
+  const currentQueue = getWriteQueue(filePath)
+  const operation = currentQueue
     .then(() => writeHistoryInternal(entries, filePath))
     .catch((err) => {
       // 錯誤會傳播給呼叫端，但不影響 queue 繼續執行
@@ -98,7 +122,7 @@ function writeHistory(entries, filePath) {
     })
   
   // 更新 queue：無論成功或失敗，都繼續下一個操作
-  writeQueue = operation.catch(() => {})
+  setWriteQueue(filePath, operation.catch(() => {}))
   
   return operation
 }
@@ -117,7 +141,8 @@ function writeHistory(entries, filePath) {
  */
 async function addEntry(entry, filePath) {
   // 將整個操作（讀+寫）加入佇列，確保序列化執行
-  const operation = writeQueue.then(async () => {
+  const currentQueue = getWriteQueue(filePath)
+  const operation = currentQueue.then(async () => {
     // 重要：在同一個 operation 內完成讀取和寫入
     // 這樣可以確保讀取到的是最新的資料
     const entries = await readHistory(filePath)
@@ -146,7 +171,7 @@ async function addEntry(entry, filePath) {
   })
   
   // 更新 queue：無論成功或失敗，都繼續下一個操作
-  writeQueue = operation.catch(() => {})
+  setWriteQueue(filePath, operation.catch(() => {}))
   
   return operation
 }
@@ -164,7 +189,8 @@ async function addEntry(entry, filePath) {
  */
 async function removeEntry(id, filePath) {
   // 將整個操作（讀+寫）加入佇列，確保序列化執行
-  const operation = writeQueue.then(async () => {
+  const currentQueue = getWriteQueue(filePath)
+  const operation = currentQueue.then(async () => {
     const entries = await readHistory(filePath)
     const index = entries.findIndex(e => e.id === id)
     
@@ -181,7 +207,7 @@ async function removeEntry(id, filePath) {
   })
   
   // 更新 queue：無論成功或失敗，都繼續下一個操作
-  writeQueue = operation.catch(() => {})
+  setWriteQueue(filePath, operation.catch(() => {}))
   
   return operation
 }
@@ -194,21 +220,24 @@ async function removeEntry(id, filePath) {
  */
 async function clearAll(filePath) {
   // 將操作加入佇列，確保序列化執行
-  const operation = writeQueue.then(() => writeHistoryInternal([], filePath))
+  const currentQueue = getWriteQueue(filePath)
+  const operation = currentQueue.then(() => writeHistoryInternal([], filePath))
   
   // 更新 queue：無論成功或失敗，都繼續下一個操作
-  writeQueue = operation.catch(() => {})
+  setWriteQueue(filePath, operation.catch(() => {}))
   
   return operation
 }
 
 /**
  * 取得所有歷史記錄
+ * 等待所有寫入操作完成後再讀取，確保讀取到最新資料
  * @param {string} [filePath] - 可選的檔案路徑（用於測試）
  * @returns {Promise<HistoryEntry[]>}
  */
 async function getAll(filePath) {
-  return await readHistory(filePath)
+  const currentQueue = getWriteQueue(filePath)
+  return currentQueue.then(() => readHistory(filePath))
 }
 
 /**
