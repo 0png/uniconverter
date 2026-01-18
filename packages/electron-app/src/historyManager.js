@@ -105,6 +105,12 @@ function writeHistory(entries, filePath) {
 
 /**
  * 新增歷史記錄
+ * 
+ * 並發安全設計：
+ * - 整個操作（讀取 + 修改 + 寫入）在同一個 queue operation 內執行
+ * - 確保多個並發呼叫會序列化執行，避免讀取到過期資料
+ * - 例如：兩個 addEntry 同時執行時，第二個會等第一個完全寫入後才讀取
+ * 
  * @param {Omit<HistoryEntry, 'id' | 'timestamp'>} entry
  * @param {string} [filePath] - 可選的檔案路徑（用於測試）
  * @returns {Promise<HistoryEntry>}
@@ -112,6 +118,8 @@ function writeHistory(entries, filePath) {
 async function addEntry(entry, filePath) {
   // 將整個操作（讀+寫）加入佇列，確保序列化執行
   const operation = writeQueue.then(async () => {
+    // 重要：在同一個 operation 內完成讀取和寫入
+    // 這樣可以確保讀取到的是最新的資料
     const entries = await readHistory(filePath)
     
     const newEntry = {
@@ -145,6 +153,11 @@ async function addEntry(entry, filePath) {
 
 /**
  * 刪除單筆歷史記錄
+ * 
+ * 並發安全設計：
+ * - 整個操作（讀取 + 修改 + 寫入）在同一個 queue operation 內執行
+ * - 確保多個並發呼叫會序列化執行
+ * 
  * @param {string} id
  * @param {string} [filePath] - 可選的檔案路徑（用於測試）
  * @returns {Promise<boolean>}

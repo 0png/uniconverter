@@ -323,7 +323,7 @@ describe('HistoryManager', () => {
       }
       
       // 等待所有操作完成
-      await Promise.all(promises)
+      const results = await Promise.all(promises)
       
       // 驗證所有記錄都被正確保存
       const entries = await readHistory(testFilePath)
@@ -334,9 +334,79 @@ describe('HistoryManager', () => {
       const uniqueIds = new Set(ids)
       expect(uniqueIds.size).toBe(5)
       
-      // 驗證所有檔案名稱都存在
+      // 驗證所有檔案名稱都存在（不會因為並發而遺失）
       const sourceFiles = entries.map(e => e.sourceFile).sort()
       expect(sourceFiles).toEqual(['file-0.png', 'file-1.png', 'file-2.png', 'file-3.png', 'file-4.png'])
+      
+      // 驗證回傳的 newEntry 都在最終結果中
+      for (const result of results) {
+        const found = entries.find(e => e.id === result.id)
+        expect(found).toBeDefined()
+        expect(found.sourceFile).toBe(result.sourceFile)
+      }
+    })
+
+    it('should handle concurrent addEntry and removeEntry without data loss', async () => {
+      // 清空歷史
+      await writeHistory([], testFilePath)
+      
+      // 先新增 3 筆
+      const entry1 = await addEntry({
+        sourceFile: 'file-1.png',
+        outputFile: 'file-1.jpg',
+        conversionType: '批量轉JPG',
+        fileType: 'image',
+        status: 'success'
+      }, testFilePath)
+      
+      const entry2 = await addEntry({
+        sourceFile: 'file-2.png',
+        outputFile: 'file-2.jpg',
+        conversionType: '批量轉JPG',
+        fileType: 'image',
+        status: 'success'
+      }, testFilePath)
+      
+      const entry3 = await addEntry({
+        sourceFile: 'file-3.png',
+        outputFile: 'file-3.jpg',
+        conversionType: '批量轉JPG',
+        fileType: 'image',
+        status: 'success'
+      }, testFilePath)
+      
+      // 同時執行：新增 2 筆 + 刪除 1 筆
+      await Promise.all([
+        addEntry({
+          sourceFile: 'file-4.png',
+          outputFile: 'file-4.jpg',
+          conversionType: '批量轉JPG',
+          fileType: 'image',
+          status: 'success'
+        }, testFilePath),
+        addEntry({
+          sourceFile: 'file-5.png',
+          outputFile: 'file-5.jpg',
+          conversionType: '批量轉JPG',
+          fileType: 'image',
+          status: 'success'
+        }, testFilePath),
+        removeEntry(entry2.id, testFilePath)
+      ])
+      
+      // 驗證最終結果：3 + 2 - 1 = 4 筆
+      const entries = await readHistory(testFilePath)
+      expect(entries.length).toBe(4)
+      
+      // 驗證 entry2 被刪除
+      const found = entries.find(e => e.id === entry2.id)
+      expect(found).toBeUndefined()
+      
+      // 驗證其他記錄都存在
+      expect(entries.find(e => e.id === entry1.id)).toBeDefined()
+      expect(entries.find(e => e.id === entry3.id)).toBeDefined()
+      expect(entries.find(e => e.sourceFile === 'file-4.png')).toBeDefined()
+      expect(entries.find(e => e.sourceFile === 'file-5.png')).toBeDefined()
     })
   })
 
