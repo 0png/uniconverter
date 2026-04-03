@@ -14,7 +14,7 @@
     "sharp"
   ],
   "scripts": {
-    "dev": "concurrently -k -n VITE,ELECTRON \"bun --filter @uniconvert/renderer dev\" \"wait-on tcp:5173 && VITE_DEV_SERVER_URL=http://localhost:5173 bun --filter @uniconvert/electron-app dev\"",
+    "dev": "concurrently -k -n VITE,ELECTRON \"bun --filter @uniconvert/renderer dev\" \"wait-on tcp:5173 && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 bun --filter @uniconvert/electron-app dev\"",
     "build": "bun --filter '*' build",
     "test": "bun --filter '*' test",
     "release": "bun --filter @uniconvert/electron-app release && bun run release:organize",
@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
     "fast-check": "^4.5.3",
     "vitest": "^4.0.17",
     "wait-on": "^9.0.4"
