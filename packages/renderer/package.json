@@ -14,6 +14,8 @@
   "author": "0png",
   "license": "MIT",
   "dependencies": {
+    "@radix-ui/react-progress": "^1.1.8",
+    "@radix-ui/react-slot": "^1.2.4",
     "@uniconvert/shared": "workspace:*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

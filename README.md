@@ -74,7 +74,7 @@ Download the latest release from [Releases](https://github.com/0png/uniconverter
 
 ### Development
 
-This project uses a pnpm workspace monorepo structure:
+This project uses a bun workspace monorepo structure:
 
 ```
 packages/
@@ -86,19 +86,19 @@ packages/
 
 ```bash
 # Install dependencies
-pnpm install
+bun install
 
-# Development mode (Electron app)
-pnpm dev
+# Development mode (Vite + Electron)
+bun dev
 
 # Build all packages
-pnpm build
+bun build
 
 # Run all tests
-pnpm test
+bun test
 
 # Build for production release
-pnpm release:build
+bun run release:build
 ```
 
 ### License
@@ -167,7 +167,7 @@ Uniconvert 是一款跨平台的檔案轉換工具（Electron + React），支�
 
 ### 開發環境
 
-本專案使用 pnpm workspace monorepo 架構：
+本專案使用 bun workspace monorepo 架構：
 
 ```
 packages/
@@ -179,19 +179,19 @@ packages/
 
 ```bash
 # 安裝依賴
-pnpm install
+bun install
 
-# 開發模式（Electron 應用）
-pnpm dev
+# 開發模式（Vite + Electron）
+bun dev
 
 # 建置所有套件
-pnpm build
+bun build
 
 # 執行所有測試
-pnpm test
+bun test
 
 # 打包發布版本
-pnpm release:build
+bun run release:build
 ```
 
 ### 授權條款

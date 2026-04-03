@@ -3,13 +3,23 @@
   "version": "1.2.3",
   "private": true,
   "description": "A universal file converter for images, videos, audio and documents",
+  "workspaces": ["packages/*"],
+  "trustedDependencies": [
+    "electron",
+    "electron-winstaller",
+    "esbuild",
+    "ffmpeg-static",
+    "puppeteer",
+    "register-scheme",
+    "sharp"
+  ],
   "scripts": {
-    "dev": "pnpm --filter @uniconvert/electron-app dev",
-    "build": "pnpm -r build",
-    "test": "pnpm -r test",
-    "release": "pnpm --filter @uniconvert/electron-app release && pnpm release:organize",
-    "release:build": "pnpm --filter @uniconvert/electron-app release:build && pnpm release:organize",
-    "release:publish": "pnpm --filter @uniconvert/electron-app release:publish && pnpm release:organize",
+    "dev": "concurrently -k -n VITE,ELECTRON \"bun --filter @uniconvert/renderer dev\" \"wait-on tcp:5173 && VITE_DEV_SERVER_URL=http://localhost:5173 bun --filter @uniconvert/electron-app dev\"",
+    "build": "bun --filter '*' build",
+    "test": "bun --filter '*' test",
+    "release": "bun --filter @uniconvert/electron-app release && bun run release:organize",
+    "release:build": "bun --filter @uniconvert/electron-app release:build && bun run release:organize",
+    "release:publish": "bun --filter @uniconvert/electron-app release:publish && bun run release:organize",
     "release:organize": "node scripts/organize-release.js",
     "prepare:icons": "node scripts/gen-icon.js"
   },
@@ -21,7 +31,9 @@
     "url": "https://github.com/0png/uniconverter.git"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "fast-check": "^4.5.3",
-    "vitest": "^4.0.17"
+    "vitest": "^4.0.17",
+    "wait-on": "^9.0.4"
   }
 }
